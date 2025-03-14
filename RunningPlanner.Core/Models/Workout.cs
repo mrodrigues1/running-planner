@@ -204,6 +204,44 @@ public class Workout
             return _workout;
         }
         
+        public WorkoutBuilder WithRunStep(decimal distance, (TimeSpan min, TimeSpan max) pace)
+        {
+            var simpleStep = SimpleStep.SimpleStepBuilder
+                .CreateBuilder()
+                .WithType(StepType.Run)
+                .WithKilometers(distance)
+                .WithPaceRange(pace)
+                .Build();
+
+            var step = Step.StepBuilder
+                .CreateBuilder()
+                .WithSimpleStep(simpleStep)
+                .Build();
+
+            WithStep(step);
+
+            return this;
+        }
+
+        public WorkoutBuilder WithRaceStep(decimal distance)
+        {
+            var simpleStep = SimpleStep.SimpleStepBuilder
+                .CreateBuilder()
+                .WithType(StepType.Run)
+                .WithKilometers(distance)
+                .WithNoTargetPaceRange()
+                .Build();
+
+            var step = Step.StepBuilder
+                .CreateBuilder()
+                .WithSimpleStep(simpleStep)
+                .Build();
+            
+            WithStep(step);
+
+            return this;
+        }
+        
         public Workout BuildRaceWorkout()
         {
             if (_workout.Type is WorkoutType.Invalid
@@ -243,6 +281,7 @@ public enum WorkoutType
     Repetition,
     Intervals,
     Threshold,
+    TempoRun,
     Fartlek,
     RacePace,
     LongRun,

@@ -2,11 +2,11 @@
 
 namespace RunningPlanner.Core;
 
-public class HalHigdonMarathonIntermediate2
+public class HalHigdonMarathonIntermediate1
 {
     public TrainingPlan TrainingPlan { get; private set; }
 
-    public HalHigdonMarathonIntermediate2()
+    public HalHigdonMarathonIntermediate1()
     {
         TrainingPlan = GenerateDefaultTrainingPlan();
     }
@@ -47,7 +47,7 @@ public class HalHigdonMarathonIntermediate2
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 5m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
             .WithFriday(CreateWorkout(WorkoutType.RacePace, 8m))
-            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 16m))
+            .WithSaturday(CreateWorkout(WorkoutType.EasyRun, 8m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
@@ -62,8 +62,8 @@ public class HalHigdonMarathonIntermediate2
             .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 8m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 5m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.EasyRun, 8m))
-            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 18m))
+            .WithFriday(CreateWorkout(WorkoutType.MediumRun, 8m))
+            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 14.5m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
@@ -75,11 +75,11 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(3)
             .WithTrainingPhase(TrainingPhase.Base)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 5m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 10m))
+            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 8m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 5m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.RacePace, 10m))
-            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 13m))
+            .WithFriday(CreateWorkout(WorkoutType.RacePace, 8m))
+            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 9m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
@@ -89,13 +89,13 @@ public class HalHigdonMarathonIntermediate2
         return TrainingWeek.TrainingWeekBuilder
             .CreateBuilder()
             .WithWeekNumber(4)
-            .WithTrainingPhase(TrainingPhase.Build)
+            .WithTrainingPhase(TrainingPhase.Base)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 5m))
             .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 10m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 5m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.RacePace, 10m))
-            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 21m))
+            .WithFriday(CreateWorkout(WorkoutType.MediumRun, 10m))
+            .WithSaturday(CreateWorkout(WorkoutType.EasyRun, 18m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
@@ -107,11 +107,11 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(5)
             .WithTrainingPhase(TrainingPhase.Build)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 5m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 11.5m))
+            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 10m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 5m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.EasyRun, 11.5m))
-            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 22.5m))
+            .WithFriday(CreateWorkout(WorkoutType.EasyRun, 10m))
+            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 19.5m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
@@ -123,11 +123,11 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(6)
             .WithTrainingPhase(TrainingPhase.Build)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 5m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 11.5m))
+            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 8m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 5m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.RacePace, 11.5m))
-            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 16m))
+            .WithFriday(CreateWorkout(WorkoutType.RacePace, 10m))
+            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 14.5m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
@@ -139,11 +139,11 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(7)
             .WithTrainingPhase(TrainingPhase.Build)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 6.5m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 13m))
+            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 11.5m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 6.5m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.RacePace, 13m))
-            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 16m))
+            .WithFriday(CreateWorkout(WorkoutType.RacePace, 11.5m))
+            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 22.5m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
@@ -155,11 +155,11 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(8)
             .WithTrainingPhase(TrainingPhase.Build)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 6.5m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 13m))
+            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 11.5m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 6.5m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.RacePace, 13m))
-            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 27.5m))
+            .WithFriday(CreateWorkout(WorkoutType.MediumRun, 11.5m))
+            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 24m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
@@ -171,12 +171,12 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(9)
             .WithTrainingPhase(TrainingPhase.TuneUpRace)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 6.5m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 14.5m))
+            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 8m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 6.5m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
             .WithFriday(CreateWorkout(WorkoutType.Rest, null))
-            .WithSaturday(CreateWorkout(WorkoutType.Rest, null))
-            .WithSunday(CreateWorkout(WorkoutType.Race, 21.1m))
+            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 21.1m))
+            .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
 
@@ -185,13 +185,13 @@ public class HalHigdonMarathonIntermediate2
         return TrainingWeek.TrainingWeekBuilder
             .CreateBuilder()
             .WithWeekNumber(10)
-            .WithTrainingPhase(TrainingPhase.Build)
+            .WithTrainingPhase(TrainingPhase.Peak)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 6.5m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 14.5m))
+            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 13m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 6.5m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.RacePace, 14.5m))
-            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 30.5m))
+            .WithFriday(CreateWorkout(WorkoutType.RacePace, 13m))
+            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 27.5m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
@@ -203,11 +203,11 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(11)
             .WithTrainingPhase(TrainingPhase.Peak)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 8m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 16m))
+            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 13m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 8m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.MediumRun, 16m))
-            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 32m))
+            .WithFriday(CreateWorkout(WorkoutType.MediumRun, 13m))
+            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 29m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
@@ -219,11 +219,11 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(12)
             .WithTrainingPhase(TrainingPhase.Peak)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 8m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 10m))
+            .WithTuesday(CreateWorkout(WorkoutType.EasyRun, 8m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 8m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.RacePace, 10m))
-            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 19.5m))
+            .WithFriday(CreateWorkout(WorkoutType.RacePace, 13m))
+            .WithSaturday(CreateWorkout(WorkoutType.LongRun, 21m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
@@ -235,10 +235,10 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(13)
             .WithTrainingPhase(TrainingPhase.Peak)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 8m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 16m))
+            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 13m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 8m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.RacePace, 16m))
+            .WithFriday(CreateWorkout(WorkoutType.RacePace, 8m))
             .WithSaturday(CreateWorkout(WorkoutType.LongRun, 32m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
@@ -251,10 +251,10 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(14)
             .WithTrainingPhase(TrainingPhase.Peak)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 8m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 10m))
+            .WithTuesday(CreateWorkout(WorkoutType.EasyRun, 8m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 8m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.MediumRun, 10m))
+            .WithFriday(CreateWorkout(WorkoutType.MediumRun, 13m))
             .WithSaturday(CreateWorkout(WorkoutType.LongRun, 19.5m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
@@ -267,10 +267,10 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(15)
             .WithTrainingPhase(TrainingPhase.Peak)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 8m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 16m))
+            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 13m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 8m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.RacePace, 16m))
+            .WithFriday(CreateWorkout(WorkoutType.RacePace, 8m))
             .WithSaturday(CreateWorkout(WorkoutType.LongRun, 32m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
@@ -283,7 +283,7 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(16)
             .WithTrainingPhase(TrainingPhase.Taper)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 8m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 13m))
+            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 10m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 8m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
             .WithFriday(CreateWorkout(WorkoutType.RacePace, 6.5m))
@@ -299,10 +299,10 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(17)
             .WithTrainingPhase(TrainingPhase.Taper)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 6.5m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 10m))
+            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 8m))
             .WithWednesday(CreateWorkout(WorkoutType.EasyRun, 6.5m))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.MediumRun, 6.5m))
+            .WithFriday(CreateWorkout(WorkoutType.EasyRun, 5m))
             .WithSaturday(CreateWorkout(WorkoutType.LongRun, 13m))
             .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
@@ -315,12 +315,12 @@ public class HalHigdonMarathonIntermediate2
             .WithWeekNumber(18)
             .WithTrainingPhase(TrainingPhase.Race)
             .WithMonday(CreateWorkout(WorkoutType.EasyRun, 5m))
-            .WithTuesday(CreateWorkout(WorkoutType.MediumRun, 6.5m))
+            .WithTuesday(CreateWorkout(WorkoutType.EasyRun, 6.5m))
             .WithWednesday(CreateWorkout(WorkoutType.Rest, null))
             .WithThursday(CreateWorkout(WorkoutType.Rest, null))
-            .WithFriday(CreateWorkout(WorkoutType.EasyRun, 3m))
-            .WithSaturday(CreateWorkout(WorkoutType.Rest, null))
-            .WithSunday(CreateWorkout(WorkoutType.Race, 42.2m))
+            .WithFriday(CreateWorkout(WorkoutType.EasyRun, 3.5m))
+            .WithSaturday(CreateWorkout(WorkoutType.Race, 42.2m))
+            .WithSunday(CreateWorkout(WorkoutType.Rest, null))
             .Build();
     }
 
@@ -357,13 +357,18 @@ public class HalHigdonMarathonIntermediate2
             .BuildSimpleWorkout();
     }
 
+    // Pace calculation methods
     private static (TimeSpan min, TimeSpan max) EasyPaceRange()
     {
-        return (new TimeSpan(0, 6, 10), new TimeSpan(0, 6, 35));
+        // Define easy pace range for Intermediate 1 runners (per kilometer)
+        return (TimeSpan.FromMinutes(5).Add(TimeSpan.FromSeconds(50)), 
+                TimeSpan.FromMinutes(6).Add(TimeSpan.FromSeconds(30)));
     }
 
     private static (TimeSpan min, TimeSpan max) RacePaceRange()
     {
-        return (new TimeSpan(0, 5, 37), new TimeSpan(0, 5, 45));
+        // Define race pace range for Intermediate 1 runners (per kilometer)
+        return (TimeSpan.FromMinutes(4).Add(TimeSpan.FromSeconds(45)), 
+                TimeSpan.FromMinutes(5).Add(TimeSpan.FromSeconds(35)));
     }
 }

@@ -16,4 +16,16 @@ public class TrainingPlanAnalyzerTests
 
         // Assert
     }
+    
+    [Fact]
+    public void Test2()
+    {
+        // Arrange
+        var halHigdonMarathonIntermediate1 = new HalHigdonMarathonIntermediate1();
+        var trainingPlanAnalyzer = new TrainingPlanAnalyzer(halHigdonMarathonIntermediate1.TrainingPlan);
+
+        // Act
+
+        // Assert
+    }
 }
