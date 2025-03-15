@@ -353,8 +353,53 @@ public class HalHigdonMarathonIntermediate2
         return Workout.WorkoutBuilder
             .CreateBuilder()
             .WithType(workoutType)
-            .WithRunStep(distance.Value, pace)
+            .WithSimpleRunStep(distance.Value, pace)
             .BuildSimpleWorkout();
+    }
+    
+    private static Workout CreateComplexWorkout(
+        WorkoutType workoutType, 
+        decimal distance,
+        int repeats,
+        decimal repeatDistance, 
+        decimal restDistance)
+    {
+        var fullIntervalDistance = repeats * (repeatDistance + restDistance);
+        
+        var easyRunDistance = distance - fullIntervalDistance;
+
+        var easyRunStepDistance = Math.Round(easyRunDistance / 2, 1, MidpointRounding.AwayFromZero);
+        
+        
+        (TimeSpan min, TimeSpan max) pace;
+
+        switch (workoutType)
+        {
+            case WorkoutType.TempoRun:
+                pace = TempoPaceRange();
+
+                break;
+            case WorkoutType.Intervals:
+            case WorkoutType.Repetition:
+                pace = IntervalPaceRange();
+
+                break;
+            case WorkoutType.Threshold:
+                pace = TempoPaceRange();
+
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(workoutType), workoutType, null);
+        }
+        
+        return Workout.WorkoutBuilder
+            .CreateBuilder()
+            .WithType(workoutType)
+            .WithSimpleRunStep(easyRunStepDistance, EasyPaceRange())
+            .WithSimpleStep(StepType.Rest, 0.3m, RestPaceRange())
+            .WithRepeatStep(repeats, repeatDistance, restDistance, pace, RestPaceRange())
+            .WithSimpleRunStep(easyRunStepDistance, EasyPaceRange())
+            .BuildRepeatWorkout();
     }
 
     private static (TimeSpan min, TimeSpan max) EasyPaceRange()
@@ -365,5 +410,25 @@ public class HalHigdonMarathonIntermediate2
     private static (TimeSpan min, TimeSpan max) RacePaceRange()
     {
         return (new TimeSpan(0, 5, 37), new TimeSpan(0, 5, 45));
+    }
+    
+    private static (TimeSpan min, TimeSpan max) TempoPaceRange()
+    {
+        // Define tempo pace range for Advanced 2 runners (per kilometer)
+        return (TimeSpan.FromMinutes(4).Add(TimeSpan.FromSeconds(30)), 
+            TimeSpan.FromMinutes(4).Add(TimeSpan.FromSeconds(50)));
+    }
+
+    private static (TimeSpan min, TimeSpan max) IntervalPaceRange()
+    {
+        // Define interval pace range for Advanced 2 runners (per kilometer)
+        return (TimeSpan.FromMinutes(4).Add(TimeSpan.FromSeconds(0)), 
+            TimeSpan.FromMinutes(4).Add(TimeSpan.FromSeconds(20)));
+    }
+    
+    private static (TimeSpan min, TimeSpan max) RestPaceRange()
+    {
+        // Define interval pace range for Advanced 2 runners (per kilometer)
+        return (TimeSpan.FromMinutes(7), TimeSpan.FromMinutes(10));
     }
 }

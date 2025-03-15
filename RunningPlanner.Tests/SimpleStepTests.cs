@@ -1,6 +1,6 @@
 ﻿using RunningPlanner.Core.Models;
 
-namespace RunningPlanner.UnitTests;
+namespace RunningPlanner.Tests;
 
 public class SimpleStepTests
 {

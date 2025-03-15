@@ -1,6 +1,6 @@
 ﻿using RunningPlanner.Core;
 
-namespace RunningPlanner.UnitTests;
+namespace RunningPlanner.Tests;
 
 public class TrainingPlanTests
 {

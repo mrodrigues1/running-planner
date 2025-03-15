@@ -15,8 +15,8 @@ public class Workout
     public TimeSpan EstimatedTime => CalculateEstimatedTime();
     public Distance TotalDistance => CalculateTotalDistance();
     public Distance EstimatedDistance => CalculateEstimatedDistance();
-    
-    public string BuildWorkoutName()
+
+    private string BuildWorkoutName()
     {
         if (Type is WorkoutType.Rest)
         {
@@ -178,6 +178,37 @@ public class Workout
             return _workout;
         }
         
+        public Workout BuildRepeatWorkout()
+        {
+            if (_workout.Type is WorkoutType.Invalid
+                || !Enum.IsDefined(_workout.Type))
+            {
+                throw new ArgumentException("Invalid workout type.");
+            }
+
+            if (_workout.Type is WorkoutType.Rest)
+            {
+                throw new ArgumentException("Workout type must not be rest.");
+            }
+
+            if (_workout.Steps is null)
+            {
+                throw new ArgumentException("Steps cannot be null.");
+            }
+
+            if (_workout.Steps.Count < 1)
+            {
+                throw new ArgumentException("Workout must contain at least one step.");
+            }
+
+            if (string.IsNullOrEmpty(_workout.Name))
+            {
+                throw new ArgumentException("Name cannot be null or empty.");
+            }
+
+            return _workout;
+        }
+        
         public Workout BuildRestWorkout()
         {
             if (_workout.Type is WorkoutType.Invalid
@@ -204,11 +235,33 @@ public class Workout
             return _workout;
         }
         
-        public WorkoutBuilder WithRunStep(decimal distance, (TimeSpan min, TimeSpan max) pace)
+        public WorkoutBuilder WithSimpleRunStep(decimal distance, (TimeSpan min, TimeSpan max) pace)
         {
             var simpleStep = SimpleStep.SimpleStepBuilder
                 .CreateBuilder()
                 .WithType(StepType.Run)
+                .WithKilometers(distance)
+                .WithPaceRange(pace)
+                .Build();
+
+            var step = Step.StepBuilder
+                .CreateBuilder()
+                .WithSimpleStep(simpleStep)
+                .Build();
+
+            WithStep(step);
+
+            return this;
+        }
+        
+        public WorkoutBuilder WithSimpleStep(
+            StepType stepType, 
+            decimal distance, 
+            (TimeSpan min, TimeSpan max) pace)
+        {
+            var simpleStep = SimpleStep.SimpleStepBuilder
+                .CreateBuilder()
+                .WithType(stepType)
                 .WithKilometers(distance)
                 .WithPaceRange(pace)
                 .Build();
@@ -239,6 +292,51 @@ public class Workout
             
             WithStep(step);
 
+            return this;
+        }
+        
+        public WorkoutBuilder WithRepeatStep(
+            int repeats, 
+            decimal repeatDistance, 
+            decimal restDistance, 
+            (TimeSpan min, TimeSpan max) intervalPace, 
+            (TimeSpan min, TimeSpan max) restPace)
+        {
+            var repeatBuilder = Repeat.RepeatBuilder
+                .CreateBuilder()
+                .WithCount(repeats * 2);
+
+            for (var i = 0; i < repeats; i++)
+            {
+                var runStep = SimpleStep.SimpleStepBuilder
+                    .CreateBuilder()
+                    .WithType(StepType.Run)
+                    .WithKilometers(repeatDistance)
+                    .WithPaceRange(intervalPace)
+                    .Build();
+                
+                var restStep = SimpleStep.SimpleStepBuilder
+                    .CreateBuilder()
+                    .WithType(StepType.Recover)
+                    .WithKilometers(restDistance)
+                    .WithPaceRange(restPace)
+                    .Build();
+                
+                repeatBuilder
+                    .WithStep(runStep)
+                    .WithStep(restStep);
+            }
+            
+            var repeat = repeatBuilder
+                .Build();
+            
+            var step = Step.StepBuilder
+                .CreateBuilder()
+                .WithRepeat(repeat)
+                .Build();
+            
+            WithStep(step);
+            
             return this;
         }
         
