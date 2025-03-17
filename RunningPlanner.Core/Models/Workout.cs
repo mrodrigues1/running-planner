@@ -22,16 +22,16 @@ public class Workout
         {
             return Type.ToString();
         }
-        
+
         var workoutName = new List<string>();
 
         workoutName.Add(Type.ToString());
 
         var metric = Steps
-            .SelectMany<Step, SimpleStep>(x => x.SimpleStep is not null
-                ? new[] {x.SimpleStep}
-                : x.Repeat?.Steps
-                  ?? [])
+            .SelectMany<Step, SimpleStep>(
+                x => x.SimpleStep is not null
+                    ? new[] {x.SimpleStep}
+                    : x.Repeat?.Steps ?? [])
             .Select(x => x.Duration?.DistanceMetric)
             .First();
 
@@ -39,14 +39,14 @@ public class Workout
 
         return string.Join(" - ", workoutName);
     }
-    
+
     private TimeSpan CalculateTotalTime()
     {
         var totalTicks = Steps
-            .SelectMany<Step, SimpleStep>(x => x.SimpleStep is not null
-                ? new[] {x.SimpleStep}
-                : x.Repeat?.Steps
-                  ?? [])
+            .SelectMany<Step, SimpleStep>(
+                x => x.SimpleStep is not null
+                    ? new[] {x.SimpleStep}
+                    : x.Repeat?.Steps ?? [])
             .Sum(step => step.TotalTime.Ticks);
 
         return new TimeSpan(totalTicks);
@@ -55,22 +55,22 @@ public class Workout
     private TimeSpan CalculateEstimatedTime()
     {
         var totalEstimatedTicks = Steps
-            .SelectMany<Step, SimpleStep>(x => x.SimpleStep is not null
-                ? new[] {x.SimpleStep}
-                : x.Repeat?.Steps
-                  ?? [])
+            .SelectMany<Step, SimpleStep>(
+                x => x.SimpleStep is not null
+                    ? new[] {x.SimpleStep}
+                    : x.Repeat?.Steps ?? [])
             .Sum(step => step.EstimatedTime.Ticks);
 
         return new TimeSpan(totalEstimatedTicks);
     }
-    
+
     private Distance CalculateTotalDistance()
     {
         var distance = Steps
-            .SelectMany<Step, SimpleStep>(x => x.SimpleStep is not null
-                ? new[] {x.SimpleStep}
-                : x.Repeat?.Steps
-                  ?? [])
+            .SelectMany<Step, SimpleStep>(
+                x => x.SimpleStep is not null
+                    ? new[] {x.SimpleStep}
+                    : x.Repeat?.Steps ?? [])
             .Sum(step => step.TotalDistance.DistanceValue);
 
         return Distance.DistanceBuilder
@@ -78,14 +78,14 @@ public class Workout
             .WithKilometers(distance)
             .Build();
     }
-    
+
     private Distance CalculateEstimatedDistance()
     {
         var estimatedDistance = Steps
-            .SelectMany<Step, SimpleStep>(x => x.SimpleStep is not null
-                ? new[] { x.SimpleStep }
-                : x.Repeat?.Steps
-                  ?? [])
+            .SelectMany<Step, SimpleStep>(
+                x => x.SimpleStep is not null
+                    ? new[] {x.SimpleStep}
+                    : x.Repeat?.Steps ?? [])
             .Sum(step => step.EstimatedDistance.DistanceValue);
 
         return Distance.DistanceBuilder
@@ -123,8 +123,7 @@ public class Workout
 
         public Workout Build()
         {
-            if (_workout.Type is WorkoutType.Invalid
-                || !Enum.IsDefined(_workout.Type))
+            if (_workout.Type is WorkoutType.Invalid || !Enum.IsDefined(_workout.Type))
             {
                 throw new ArgumentException("Invalid workout type.");
             }
@@ -146,11 +145,10 @@ public class Workout
 
             return _workout;
         }
-        
+
         public Workout BuildSimpleWorkout()
         {
-            if (_workout.Type is WorkoutType.Invalid
-                || !Enum.IsDefined(_workout.Type))
+            if (_workout.Type is WorkoutType.Invalid || !Enum.IsDefined(_workout.Type))
             {
                 throw new ArgumentException("Invalid workout type.");
             }
@@ -166,7 +164,7 @@ public class Workout
             }
 
             if (_workout.Steps.Count is not 1)
-            {  
+            {
                 throw new ArgumentException("Workout must contain exactly one step.");
             }
 
@@ -177,11 +175,10 @@ public class Workout
 
             return _workout;
         }
-        
+
         public Workout BuildRepeatWorkout()
         {
-            if (_workout.Type is WorkoutType.Invalid
-                || !Enum.IsDefined(_workout.Type))
+            if (_workout.Type is WorkoutType.Invalid || !Enum.IsDefined(_workout.Type))
             {
                 throw new ArgumentException("Invalid workout type.");
             }
@@ -208,11 +205,10 @@ public class Workout
 
             return _workout;
         }
-        
+
         public Workout BuildRestWorkout()
         {
-            if (_workout.Type is WorkoutType.Invalid
-                || !Enum.IsDefined(_workout.Type))
+            if (_workout.Type is WorkoutType.Invalid || !Enum.IsDefined(_workout.Type))
             {
                 throw new ArgumentException("Invalid workout type.");
             }
@@ -234,7 +230,7 @@ public class Workout
 
             return _workout;
         }
-        
+
         public WorkoutBuilder WithSimpleRunStep(decimal distance, (TimeSpan min, TimeSpan max) pace)
         {
             var simpleStep = SimpleStep.SimpleStepBuilder
@@ -253,10 +249,10 @@ public class Workout
 
             return this;
         }
-        
+
         public WorkoutBuilder WithSimpleStep(
-            StepType stepType, 
-            decimal distance, 
+            StepType stepType,
+            decimal distance,
             (TimeSpan min, TimeSpan max) pace)
         {
             var simpleStep = SimpleStep.SimpleStepBuilder
@@ -289,17 +285,17 @@ public class Workout
                 .CreateBuilder()
                 .WithSimpleStep(simpleStep)
                 .Build();
-            
+
             WithStep(step);
 
             return this;
         }
-        
+
         public WorkoutBuilder WithRepeatStep(
-            int repeats, 
-            decimal repeatDistance, 
-            decimal restDistance, 
-            (TimeSpan min, TimeSpan max) intervalPace, 
+            int repeats,
+            decimal repeatDistance,
+            decimal restDistance,
+            (TimeSpan min, TimeSpan max) intervalPace,
             (TimeSpan min, TimeSpan max) restPace)
         {
             var repeatBuilder = Repeat.RepeatBuilder
@@ -314,36 +310,35 @@ public class Workout
                     .WithKilometers(repeatDistance)
                     .WithPaceRange(intervalPace)
                     .Build();
-                
+
                 var restStep = SimpleStep.SimpleStepBuilder
                     .CreateBuilder()
                     .WithType(StepType.Recover)
                     .WithKilometers(restDistance)
                     .WithPaceRange(restPace)
                     .Build();
-                
+
                 repeatBuilder
                     .WithStep(runStep)
                     .WithStep(restStep);
             }
-            
+
             var repeat = repeatBuilder
                 .Build();
-            
+
             var step = Step.StepBuilder
                 .CreateBuilder()
                 .WithRepeat(repeat)
                 .Build();
-            
+
             WithStep(step);
-            
+
             return this;
         }
-        
+
         public Workout BuildRaceWorkout()
         {
-            if (_workout.Type is WorkoutType.Invalid
-                || !Enum.IsDefined(_workout.Type))
+            if (_workout.Type is WorkoutType.Invalid || !Enum.IsDefined(_workout.Type))
             {
                 throw new ArgumentException("Invalid workout type.");
             }
@@ -381,6 +376,7 @@ public enum WorkoutType
     Threshold,
     TempoRun,
     Fartlek,
+    HillRepeat,
     RacePace,
     LongRun,
     Race
