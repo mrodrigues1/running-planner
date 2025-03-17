@@ -235,4 +235,63 @@ public static class WorkoutExtensions
             .WithSimpleStep(StepType.CoolDown, cooldownDistance + additionalEasyDistance, easyPaceRange)
             .Build();
     }
+
+    /// <summary>
+    /// Creates a stride workout that incorporates strides with defined pace ranges and recovery segments,
+    /// along with warm-up and cool-down phases.
+    /// </summary>
+    /// <param name="distance">The total distance of the workout in kilometers.</param>
+    /// <param name="strideCount">The number of strides to include in the workout.</param>
+    /// <param name="easyPaceRange">The pace range for the easy run sections of the workout.</param>
+    /// <param name="strideRange">The pace range for the strides.</param>
+    /// <param name="recoveryPaceRange">The pace range for the recovery sections between strides.</param>
+    /// <returns>A stride workout object with strides integrated into the workout flow.</returns>
+    public static Workout CreateStrideWorkout(
+        decimal distance,
+        int strideCount,
+        (TimeSpan min, TimeSpan max) easyPaceRange,
+        (TimeSpan min, TimeSpan max) strideRange,
+        (TimeSpan min, TimeSpan max) recoveryPaceRange)
+    {
+        // Create a workout with strides included in the middle or end
+        return Workout.WorkoutBuilder
+            .CreateBuilder()
+            .WithType(WorkoutType.EasyRun)
+            .WithSimpleStep(StepType.WarmUp, distance * 0.2m, easyPaceRange)
+            .WithSimpleStep(StepType.Run, distance * 0.4m, easyPaceRange)
+            .WithRepeatStep(
+                strideCount, // Number of strides
+                0.1m, // About 100m per stride
+                0.1m, // About 100m recovery
+                strideRange,
+                recoveryPaceRange)
+            .WithSimpleStep(StepType.CoolDown, distance * 0.2m, easyPaceRange)
+            .Build();
+    }
+
+    /// <summary>
+    /// Creates a threshold workout with specified distances, paces, and warmup/cooldown segments.
+    /// </summary>
+    /// <param name="thresholdDistance">The distance for the threshold segment.</param>
+    /// <param name="totalDistance">The total distance of the workout, including warmup, threshold, and cooldown segments.</param>
+    /// <param name="easyPaceRange">The range of pace for the warmup and cooldown segments.</param>
+    /// <param name="thresholdPaceRange">The range of pace for the threshold segment.</param>
+    /// <returns>A threshold workout object with the configured steps and type.</returns>
+    public static Workout CreateThresholdWorkout(
+        decimal thresholdDistance,
+        decimal totalDistance,
+        (TimeSpan min, TimeSpan max) easyPaceRange,
+        (TimeSpan min, TimeSpan max) thresholdPaceRange)
+    {
+        decimal warmupDistance = (totalDistance - thresholdDistance) * 0.5m;
+        decimal cooldownDistance = totalDistance - thresholdDistance - warmupDistance;
+
+        return Workout.WorkoutBuilder
+            .CreateBuilder()
+            .WithType(WorkoutType.Threshold)
+            .WithSimpleStep(StepType.WarmUp, warmupDistance, easyPaceRange)
+            .WithSimpleStep(StepType.Run, thresholdDistance, thresholdPaceRange)
+            .WithSimpleStep(StepType.CoolDown, cooldownDistance, easyPaceRange)
+            .Build();
+    }
 }
