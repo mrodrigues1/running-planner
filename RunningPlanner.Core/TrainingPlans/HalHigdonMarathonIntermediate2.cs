@@ -1,6 +1,6 @@
 ﻿using RunningPlanner.Core.Models;
 
-namespace RunningPlanner.Core;
+namespace RunningPlanner.Core.TrainingPlans;
 
 public class HalHigdonMarathonIntermediate2
 {

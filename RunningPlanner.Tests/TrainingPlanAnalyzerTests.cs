@@ -1,5 +1,5 @@
-﻿using RunningPlanner.Core;
-using RunningPlanner.Core.Models;
+﻿using RunningPlanner.Core.Models;
+using RunningPlanner.Core.TrainingPlans;
 
 namespace RunningPlanner.Tests;
 

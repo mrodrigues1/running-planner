@@ -1,4 +1,4 @@
-﻿using RunningPlanner.Core;
+﻿using RunningPlanner.Core.TrainingPlans;
 
 namespace RunningPlanner.Tests;
 
