@@ -47,6 +47,21 @@ public static class WorkoutExtensions
     }
 
     /// <summary>
+    /// Creates a medium run workout with a specified distance and pace range.
+    /// </summary>
+    /// <param name="distance">The distance of the medium run in kilometers.</param>
+    /// <param name="paceRange">The range of pace, with minimum and maximum times per kilometer.</param>
+    /// <returns>A workout object representing a medium run.</returns>
+    public static Workout CreateMediumRunWorkout(decimal distance, (TimeSpan min, TimeSpan max) paceRange)
+    {
+        return Workout.WorkoutBuilder
+            .CreateBuilder()
+            .WithType(WorkoutType.MediumRun)
+            .WithSimpleRunStep(distance, paceRange)
+            .BuildSimpleWorkout();
+    }
+
+    /// <summary>
     /// Creates a long run workout and sets the type to LongRun.
     /// </summary>
     /// <param name="distance">The total distance of the long run in kilometers.</param>
