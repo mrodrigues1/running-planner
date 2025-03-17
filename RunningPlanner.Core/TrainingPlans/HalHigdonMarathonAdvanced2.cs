@@ -215,7 +215,7 @@ public class HalHigdonMarathonAdvanced2
             .WithSunday(
                 CreateWorkout(
                     WorkoutType.LongRun,
-                    1.6m)) // Note from source: "1.6 which appears to be a typo. Should likely be 25.6"
+                    25.6m))
             .Build();
     }
 
