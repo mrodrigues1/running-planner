@@ -5,6 +5,63 @@ namespace RunningPlanner.Core.Extensions;
 public static class WorkoutExtensions
 {
     /// <summary>
+    /// Creates a rest workout with no steps and sets the type to rest.
+    /// </summary>
+    /// <returns>A rest workout object with the type set as Rest.</returns>
+    public static Workout CreateRestWorkout()
+    {
+        return Workout.WorkoutBuilder
+            .CreateBuilder()
+            .WithType(WorkoutType.Rest)
+            .BuildRestWorkout();
+    }
+
+    /// <summary>
+    /// Creates a race workout with specified distance and pace range.
+    /// </summary>
+    /// <param name="distance">The total distance of the race workout in kilometers.</param>
+    /// <param name="paceRange">The minimum and maximum pace range for the race workout.</param>
+    /// <returns>A race workout object with the specified distance and pace range.</returns>
+    public static Workout CreateRaceWorkout(decimal distance, (TimeSpan min, TimeSpan max) paceRange)
+    {
+        return Workout.WorkoutBuilder
+            .CreateBuilder()
+            .WithType(WorkoutType.Race)
+            .WithSimpleRunStep(distance, paceRange)
+            .BuildSimpleWorkout();
+    }
+
+    /// <summary>
+    /// Creates an easy run workout with a given distance and pace range.
+    /// </summary>
+    /// <param name="distance">The distance of the easy run.</param>
+    /// <param name="paceRange">The pace range for the run, represented as a tuple of minimum and maximum times.</param>
+    /// <returns>An easy run workout object with the specified distance and pace range.</returns>
+    public static Workout CreateEasyRunWorkout(decimal distance, (TimeSpan min, TimeSpan max) paceRange)
+    {
+        return Workout.WorkoutBuilder
+            .CreateBuilder()
+            .WithType(WorkoutType.EasyRun)
+            .WithSimpleRunStep(distance, paceRange)
+            .BuildSimpleWorkout();
+    }
+
+    /// <summary>
+    /// Creates a race pace workout with a specified distance and pace range.
+    /// </summary>
+    /// <param name="distance">The distance of the workout in kilometers.</param>
+    /// <param name="paceRange">The target pace range for the workout, defined by a minimum and maximum time span.</param>
+    /// <returns>A race pace workout object with the specified parameters.</returns>
+    public static Workout CreateRacePaceWorkout(decimal distance, (TimeSpan min, TimeSpan max) paceRange)
+    {
+        return Workout.WorkoutBuilder
+            .CreateBuilder()
+            .WithType(WorkoutType.RacePace)
+            .WithSimpleRunStep(distance, paceRange)
+            .BuildSimpleWorkout();
+    }
+
+    /// <summary>
     /// Creates a hill workout consisting of repeats, warmup, and cooldown based on the specified parameters.
     /// </summary>
     /// <param name="repeats">Number of hill repeats in the workout.</param>
@@ -40,7 +97,7 @@ public static class WorkoutExtensions
 
         return Workout.WorkoutBuilder
             .CreateBuilder()
-            .WithType(WorkoutType.Intervals) // Using Intervals type for hills
+            .WithType(WorkoutType.HillRepeat)
             .WithSimpleStep(StepType.WarmUp, warmupDistance, easyPaceRange)
             .WithRepeatStep(
                 repeats,
