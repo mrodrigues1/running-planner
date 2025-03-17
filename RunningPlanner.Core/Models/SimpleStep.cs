@@ -161,5 +161,6 @@ public enum StepType
     CoolDown,
     Rest,
     Recover,
-    Run
+    Run,
+    Walk
 }
