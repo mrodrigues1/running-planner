@@ -1,4 +1,4 @@
-﻿using RunningPlanner.Core.TrainingPlans;
+﻿using RunningPlanner.Core.TrainingPlans.HalHigdon;
 
 namespace RunningPlanner.Tests;
 
