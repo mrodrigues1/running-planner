@@ -75,7 +75,7 @@ public class Workout
 
         return Distance.DistanceBuilder
             .CreateBuilder()
-            .WithKilometers(distance)
+            .WithKilometers(Math.Round(distance, 1, MidpointRounding.AwayFromZero))
             .Build();
     }
 
