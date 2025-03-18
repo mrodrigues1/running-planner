@@ -1,7 +1,7 @@
 ﻿using RunningPlanner.Core.Extensions;
 using RunningPlanner.Core.Models;
 
-namespace RunningPlanner.Core.TrainingPlans;
+namespace RunningPlanner.Core.TrainingPlans.HalHigdon;
 
 public class HalHigdonMarathonIntermediate1
 {
