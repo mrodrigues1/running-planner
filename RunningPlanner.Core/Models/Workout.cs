@@ -30,8 +30,8 @@ public class Workout
         var metric = Steps
             .SelectMany<Step, SimpleStep>(
                 x => x.SimpleStep is not null
-                    ? new[] {x.SimpleStep}
-                    : x.Repeat?.Steps ?? [])
+                    ? [x.SimpleStep]
+                    : x.Repeat?.RepeatableSteps ?? [])
             .Select(x => x.Duration?.DistanceMetric)
             .First();
 
@@ -45,8 +45,8 @@ public class Workout
         var totalTicks = Steps
             .SelectMany<Step, SimpleStep>(
                 x => x.SimpleStep is not null
-                    ? new[] {x.SimpleStep}
-                    : x.Repeat?.Steps ?? [])
+                    ? [x.SimpleStep]
+                    : x.Repeat?.RepeatableSteps ?? [])
             .Sum(step => step.TotalTime.Ticks);
 
         return new TimeSpan(totalTicks);
@@ -57,8 +57,8 @@ public class Workout
         var totalEstimatedTicks = Steps
             .SelectMany<Step, SimpleStep>(
                 x => x.SimpleStep is not null
-                    ? new[] {x.SimpleStep}
-                    : x.Repeat?.Steps ?? [])
+                    ? [x.SimpleStep]
+                    : x.Repeat?.RepeatableSteps ?? [])
             .Sum(step => step.EstimatedTime.Ticks);
 
         return new TimeSpan(totalEstimatedTicks);
@@ -69,8 +69,8 @@ public class Workout
         var distance = Steps
             .SelectMany<Step, SimpleStep>(
                 x => x.SimpleStep is not null
-                    ? new[] {x.SimpleStep}
-                    : x.Repeat?.Steps ?? [])
+                    ? [x.SimpleStep]
+                    : x.Repeat?.RepeatableSteps ?? [])
             .Sum(step => step.TotalDistance.DistanceValue);
 
         return Distance.DistanceBuilder
@@ -84,8 +84,8 @@ public class Workout
         var estimatedDistance = Steps
             .SelectMany<Step, SimpleStep>(
                 x => x.SimpleStep is not null
-                    ? new[] {x.SimpleStep}
-                    : x.Repeat?.Steps ?? [])
+                    ? [x.SimpleStep]
+                    : x.Repeat?.RepeatableSteps ?? [])
             .Sum(step => step.EstimatedDistance.DistanceValue);
 
         return Distance.DistanceBuilder
