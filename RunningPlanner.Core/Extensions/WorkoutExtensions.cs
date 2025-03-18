@@ -177,6 +177,12 @@ public static class WorkoutExtensions
             .Build();
     }
 
+    /// <summary>
+    /// Calculates the distance covered based on the duration and specified pace range.
+    /// </summary>
+    /// <param name="duration">The time duration for which the distance is to be calculated.</param>
+    /// <param name="paceRange">The pace range (minimum and maximum pace) used for the calculation.</param>
+    /// <returns>The calculated distance based on the given duration and pace range.</returns>
     private static decimal CalculateDistanceBasedOnDuration(TimeSpan duration, (TimeSpan min, TimeSpan max) paceRange)
     {
         // Calculate average tempo pace in ticks per km, then convert to minutes
@@ -309,15 +315,15 @@ public static class WorkoutExtensions
     /// Each interval specifies the number of repetitions, run duration, and walk duration.
     /// The run and walk durations are paired with their respective pace ranges to calculate distances.
     /// </summary>
-    /// <param name="runWalkIntervals">A list of tuples representing intervals for the workout, where each tuple contains
-    /// the number of repetitions, run duration, and walk duration.</param>
     /// <param name="runPaceRange">The minimum and maximum paces for the running segments.</param>
     /// <param name="walkPaceRange">The minimum and maximum paces for the walking segments.</param>
+    /// <param name="runWalkIntervals">A list of tuples representing intervals for the workout, where each tuple contains
+    ///     the number of repetitions, run duration, and walk duration.</param>
     /// <returns>A workout object of type WalkRun configured with the specified intervals, paces, and steps.</returns>
-    public static Workout CreateWalkRunWorkout(
-        List<WalkRunInterval> runWalkIntervals,
+    public static Workout CreateRunWalkWorkout(
         (TimeSpan min, TimeSpan max) runPaceRange,
-        (TimeSpan min, TimeSpan max) walkPaceRange)
+        (TimeSpan min, TimeSpan max) walkPaceRange,
+        params WalkRunInterval[] runWalkIntervals)
     {
         // Build the workout
         var workoutBuilder = Workout.WorkoutBuilder
