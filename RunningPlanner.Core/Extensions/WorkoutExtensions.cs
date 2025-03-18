@@ -162,12 +162,7 @@ public static class WorkoutExtensions
         // - Tempo section at faster pace (using the minutes specified)
         // - Cooldown as specified (default 2km)
 
-        // Calculate average tempo pace in ticks per km, then convert to minutes
-        decimal avgTempoTicksPerKm = (decimal) (tempoPaceRange.min.Ticks + tempoPaceRange.max.Ticks) / 2;
-        decimal avgTempoMinutesPerKm = avgTempoTicksPerKm / (decimal) TimeSpan.TicksPerMinute;
-
-        // Calculate the distance covered during the tempo portion
-        decimal tempoDistance = tempoMinutes / avgTempoMinutesPerKm;
+        var tempoDistance = CalculateDistanceBasedOnDuration(TimeSpan.FromMinutes(tempoMinutes), tempoPaceRange);
 
         // Additional easy distance if needed to match total
         decimal remainingDistance = totalDistance - (warmupDistance + tempoDistance + cooldownDistance);
@@ -180,6 +175,20 @@ public static class WorkoutExtensions
             .WithSimpleStep(StepType.Run, tempoDistance, tempoPaceRange)
             .WithSimpleStep(StepType.CoolDown, cooldownDistance + additionalEasyDistance, easyPaceRange)
             .Build();
+    }
+
+    private static decimal CalculateDistanceBasedOnDuration(TimeSpan duration, (TimeSpan min, TimeSpan max) paceRange)
+    {
+        // Calculate average tempo pace in ticks per km, then convert to minutes
+        decimal avgTempoTicksPerKm = (decimal) (paceRange.min.Ticks + paceRange.max.Ticks) / 2;
+        decimal avgMinutesPerKm = avgTempoTicksPerKm / (decimal) TimeSpan.TicksPerMinute;
+
+        decimal minutes = (decimal) duration.Ticks / TimeSpan.TicksPerMinute;
+
+        // Calculate the distance covered during the tempo portion
+        decimal distance = minutes / avgMinutesPerKm;
+
+        return distance;
     }
 
     /// <summary>
@@ -293,5 +302,65 @@ public static class WorkoutExtensions
             .WithSimpleStep(StepType.Run, thresholdDistance, thresholdPaceRange)
             .WithSimpleStep(StepType.CoolDown, cooldownDistance, easyPaceRange)
             .Build();
+    }
+
+    /// <summary>
+    /// Creates a walk-run workout consisting of alternating walk and run intervals.
+    /// </summary>
+    /// <param name="intervals">The number of walk-run intervals included in the workout.</param>
+    /// <param name="runDuration">The duration for each running interval.</param>
+    /// <param name="walkDuration">The duration for each walking interval.</param>
+    /// <param name="runPaceRange">The minimum and maximum pace range for running steps.</param>
+    /// <param name="walkPaceRange">The minimum and maximum pace range for walking steps.</param>
+    /// <returns>A walk-run workout object with the specified intervals, durations, and pace ranges.</returns>
+    public static Workout CreateWalkRunWorkout(
+        int intervals,
+        TimeSpan runDuration,
+        TimeSpan walkDuration,
+        (TimeSpan min, TimeSpan max) runPaceRange,
+        (TimeSpan min, TimeSpan max) walkPaceRange)
+    {
+        // Build the workout
+        var workoutBuilder = Workout.WorkoutBuilder
+            .CreateBuilder()
+            .WithType(WorkoutType.WalkRun);
+
+        // Create a repeat for the walk/run intervals
+        var repeatBuilder = Repeat.RepeatBuilder
+            .CreateBuilder()
+            .WithCount(intervals * 2); // *2 because each interval has 2 steps (walk + run)
+
+        var runDistance = CalculateDistanceBasedOnDuration(runDuration, runPaceRange);
+        var walkDistance = CalculateDistanceBasedOnDuration(walkDuration, walkPaceRange);
+
+        for (int i = 0; i < intervals; i++)
+        {
+            var walkStep = SimpleStep.SimpleStepBuilder
+                .CreateBuilder()
+                .WithType(StepType.Walk)
+                .WithKilometers(walkDistance)
+                .WithPaceRange(walkPaceRange)
+                .Build();
+
+            var runStep = SimpleStep.SimpleStepBuilder
+                .CreateBuilder()
+                .WithType(StepType.Run)
+                .WithKilometers(runDistance)
+                .WithPaceRange(runPaceRange)
+                .Build();
+
+            repeatBuilder
+                .WithStep(walkStep)
+                .WithStep(runStep);
+        }
+
+        var repeat = repeatBuilder.Build();
+
+        var step = Step.StepBuilder
+            .CreateBuilder()
+            .WithRepeat(repeat)
+            .Build();
+
+        return workoutBuilder.WithStep(step).Build();
     }
 }
