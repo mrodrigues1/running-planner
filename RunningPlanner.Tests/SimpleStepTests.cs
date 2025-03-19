@@ -12,12 +12,7 @@ public class SimpleStepTests
 
         var intensityTarget = IntensityTarget.Pace(new TimeSpan(0, 6, 0), new TimeSpan(0, 6, 30));
 
-        var step = SimpleStep.SimpleStepBuilder
-            .CreateBuilder()
-            .WithType(StepType.Run)
-            .WithDuration(duration)
-            .WithIntensityTarget(intensityTarget)
-            .Build();
+        var step = SimpleStep.CreateWithKilometers(StepType.Run, 10, intensityTarget);
 
         // Act & Assert
         Assert.Equal(10, step.TotalDistance.DistanceValue);
@@ -31,12 +26,7 @@ public class SimpleStepTests
 
         var intensityTarget = IntensityTarget.Pace(new TimeSpan(0, 6, 0), new TimeSpan(0, 6, 30));
 
-        var step = SimpleStep.SimpleStepBuilder
-            .CreateBuilder()
-            .WithType(StepType.Run)
-            .WithDuration(duration)
-            .WithIntensityTarget(intensityTarget)
-            .Build();
+        var step = SimpleStep.CreateWithKilometers(StepType.Run, 10, intensityTarget);
 
         // Act & Assert
         Assert.Equal(new TimeSpan(1, 2, 30), step.EstimatedTime);

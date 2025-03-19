@@ -1,19 +1,49 @@
 ﻿namespace RunningPlanner.Core.Models;
 
-public class SimpleStep
+public record SimpleStep
 {
-    private SimpleStep()
-    {
-    }
+    // Core properties
+    public StepType Type { get; }
+    public Duration Duration { get; }
+    public IntensityTarget IntensityTarget { get; }
 
-    public StepType Type { get; private set; }
-    public Duration Duration { get; private set; }
-    public IntensityTarget IntensityTarget { get; private set; }
-    public TimeSpan EstimatedTime => CalculateEstimatedTime();
-    public TimeSpan TotalTime => CalculateTotalTime();
+    // Calculated properties
     public Distance EstimatedDistance => CalculateEstimatedDistance();
     public Distance TotalDistance => CalculateTotalDistance();
+    public TimeSpan EstimatedTime => CalculateEstimatedTime();
+    public TimeSpan TotalTime => CalculateTotalTime();
 
+    // Private constructor ensures validation at creation time
+    private SimpleStep(StepType type, Duration duration, IntensityTarget intensityTarget)
+    {
+        if (!Enum.IsDefined(type))
+        {
+            throw new ArgumentException("Invalid step type.");
+        }
+
+        Type = type;
+        Duration = duration ?? throw new ArgumentNullException(nameof(duration));
+        IntensityTarget = intensityTarget ?? throw new ArgumentNullException(nameof(intensityTarget));
+    }
+
+    // Factory methods for common use cases
+    public static SimpleStep Create(StepType type, Duration duration, IntensityTarget intensityTarget)
+        => new(type, duration, intensityTarget);
+
+    public static SimpleStep CreateWithKilometers(StepType type, decimal distance, IntensityTarget intensityTarget)
+        => new(type, Duration.ForKilometers(distance), intensityTarget);
+
+    public static SimpleStep CreateWithPaceRange(
+        StepType type,
+        Duration duration,
+        TimeSpan paceMin,
+        TimeSpan paceMax)
+        => new(type, duration, IntensityTarget.Pace(paceMin, paceMax));
+
+    public static SimpleStep CreateWithNoTarget(StepType type, Duration duration)
+        => new(type, duration, IntensityTarget.None());
+
+    // Implementation details for calculated properties
     private Distance CalculateEstimatedDistance()
     {
         var timeDuration = Duration as Duration.TimeDuration;
@@ -41,101 +71,29 @@ public class SimpleStep
 
     private TimeSpan CalculateEstimatedTime()
     {
-        var paceIntensity = IntensityTarget as IntensityTarget.PaceIntensity;
-        var distanceDuration = Duration as Duration.DistanceDuration;
-        var averagePace = paceIntensity?.Average ?? TimeSpan.MinValue;
-        var distance = distanceDuration?.Value ?? 0;
-        var totalTicks = averagePace.Ticks * distance;
+        // Implementation logic here
+        if (Duration is Duration.TimeDuration timeDuration)
+        {
+            return timeDuration.Time;
+        }
 
-        return new TimeSpan((long) totalTicks);
+        // If we have distance and pace, calculate time
+        if (Duration is Duration.DistanceDuration distanceDuration &&
+            IntensityTarget is IntensityTarget.PaceIntensity paceTarget)
+        {
+            // Simple estimation using average pace
+            return TimeSpan.FromTicks((long) (distanceDuration.Value * paceTarget.Average.Ticks));
+        }
+
+        return TimeSpan.Zero; // Default
     }
 
-    public TimeSpan CalculateTotalTime()
+    private TimeSpan CalculateTotalTime()
     {
         var timeDuration = Duration as Duration.TimeDuration;
         var totalTicks = timeDuration?.Time.Ticks ?? 0;
 
         return new TimeSpan(totalTicks);
-    }
-
-    public class SimpleStepBuilder
-    {
-        private readonly SimpleStep _step;
-
-        private SimpleStepBuilder()
-        {
-            _step = new SimpleStep();
-        }
-
-        public SimpleStepBuilder WithType(StepType type)
-        {
-            _step.Type = type;
-
-            return this;
-        }
-
-        public SimpleStepBuilder WithDuration(Duration duration)
-        {
-            _step.Duration = duration;
-
-            return this;
-        }
-
-        public SimpleStepBuilder WithIntensityTarget(IntensityTarget intensityTarget)
-        {
-            _step.IntensityTarget = intensityTarget;
-
-            return this;
-        }
-
-        public SimpleStepBuilder WithKilometers(decimal distance)
-        {
-            var duration = Duration.ForKilometers(distance);
-
-            WithDuration(duration);
-
-            return this;
-        }
-
-        public SimpleStepBuilder WithPaceRange((TimeSpan paceMin, TimeSpan paceMax) paceRange)
-        {
-            var intensityTarget = IntensityTarget.Pace(paceRange.paceMin, paceRange.paceMax);
-
-            WithIntensityTarget(intensityTarget);
-
-            return this;
-        }
-
-        public SimpleStepBuilder WithNoTargetPaceRange()
-        {
-            var intensityTarget = IntensityTarget.None();
-
-            WithIntensityTarget(intensityTarget);
-
-            return this;
-        }
-
-        public SimpleStep Build()
-        {
-            if (_step.Type == StepType.Invalid || !Enum.IsDefined(_step.Type))
-            {
-                throw new ArgumentException("Invalid step type.");
-            }
-
-            if (_step.Duration is null)
-            {
-                throw new ArgumentException("Duration cannot be null.");
-            }
-
-            if (_step.IntensityTarget is null)
-            {
-                throw new ArgumentException("Intensity target cannot be null.");
-            }
-
-            return _step;
-        }
-
-        public static SimpleStepBuilder CreateBuilder() => new();
     }
 }
 
