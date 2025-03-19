@@ -1,42 +1,52 @@
 ﻿namespace RunningPlanner.Core.Models;
 
-public class TrainingPlan
+/// <summary>
+/// Represents a complete training plan consisting of multiple training weeks.
+/// </summary>
+public record TrainingPlan
 {
-    private TrainingPlan()
+    /// <summary>
+    /// Gets the list of training weeks in this plan.
+    /// </summary>
+    public IReadOnlyList<TrainingWeek> TrainingWeeks { get; }
+
+    private TrainingPlan(IEnumerable<TrainingWeek> trainingWeeks)
     {
+        var weeks = trainingWeeks?.ToList() ?? new List<TrainingWeek>();
+
+        if (weeks.Count < 1)
+        {
+            throw new ArgumentException("Training plan must contain at least one week.");
+        }
+
+        // Ensure no null weeks
+        if (weeks.Any(week => week == null))
+        {
+            throw new ArgumentNullException(
+                nameof(trainingWeeks),
+                "Training weeks collection cannot contain null elements.");
+        }
+
+        TrainingWeeks = weeks.AsReadOnly();
     }
 
-    public List<TrainingWeek> TrainingWeeks { get; private set; }
+    /// <summary>
+    /// Creates a new training plan with the specified weeks.
+    /// </summary>
+    /// <param name="weeks">The training weeks to include in the plan.</param>
+    /// <returns>A new TrainingPlan instance.</returns>
+    /// <exception cref="ArgumentException">Thrown when the collection is empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when the collection contains null elements.</exception>
+    public static TrainingPlan Create(params TrainingWeek[] weeks) =>
+        new(weeks);
 
-    public class TrainingPlanBuilder
-    {
-        private readonly TrainingPlan _trainingPlan;
-
-        private TrainingPlanBuilder()
-        {
-            _trainingPlan = new TrainingPlan
-            {
-                TrainingWeeks = []
-            };
-        }
-
-        public TrainingPlanBuilder WithTrainingWeek(TrainingWeek trainingWeek)
-        {
-            _trainingPlan.TrainingWeeks.Add(trainingWeek);
-
-            return this;
-        }
-
-        public TrainingPlan Build()
-        {
-            if (_trainingPlan.TrainingWeeks.Count < 1)
-            {
-                throw new ArgumentException("Training plan must contain at least one week.");
-            }
-
-            return _trainingPlan;
-        }
-
-        public static TrainingPlanBuilder CreateBuilder() => new();
-    }
+    /// <summary>
+    /// Creates a new training plan with the specified collection of weeks.
+    /// </summary>
+    /// <param name="weeks">The training weeks to include in the plan.</param>
+    /// <returns>A new TrainingPlan instance.</returns>
+    /// <exception cref="ArgumentException">Thrown when the collection is empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when the collection contains null elements.</exception>
+    public static TrainingPlan Create(IEnumerable<TrainingWeek> weeks) =>
+        new(weeks);
 }
