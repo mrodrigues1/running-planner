@@ -335,12 +335,12 @@ public static class WorkoutExtensions
             // Create a repeat for the walk/run intervals
             var repeatBuilder = Repeat.RepeatBuilder
                 .CreateBuilder()
-                .WithCount(runWalkInterval.Count * 2); // *2 because each interval has 2 steps (walk + run)
+                .WithCount(runWalkInterval.RepeatCount * 2); // *2 because each interval has 2 steps (walk + run)
 
             var runDistance = CalculateDistanceBasedOnDuration(runWalkInterval.RunDuration, runPaceRange);
             var walkDistance = CalculateDistanceBasedOnDuration(runWalkInterval.WalkDuration, walkPaceRange);
 
-            for (int i = 0; i < runWalkInterval.Count; i++)
+            for (int i = 0; i < runWalkInterval.RepeatCount; i++)
             {
                 var runStep = SimpleStep.SimpleStepBuilder
                     .CreateBuilder()
@@ -369,6 +369,57 @@ public static class WorkoutExtensions
                 .Build();
 
             workoutBuilder.WithStep(step);
+        }
+
+        // If there's a continuous easy section (like the 15:00-20:00 E in the second workout),
+        // add it as a separate step
+        if (runWalkIntervals.Any(i => i.ContinuousEasyDuration > TimeSpan.Zero))
+        {
+            foreach (var interval in runWalkIntervals)
+            {
+                var continuousEasyDistance = CalculateDistanceBasedOnDuration(
+                    interval.ContinuousEasyDuration,
+                    runPaceRange);
+
+                var continuousEasyStep = SimpleStep.SimpleStepBuilder
+                    .CreateBuilder()
+                    .WithType(StepType.Run)
+                    .WithKilometers(continuousEasyDistance)
+                    .WithPaceRange(runPaceRange)
+                    .Build();
+
+                var easyStep = Step.StepBuilder
+                    .CreateBuilder()
+                    .WithSimpleStep(continuousEasyStep)
+                    .Build();
+
+                workoutBuilder.WithStep(easyStep);
+            }
+        }
+
+        // If there's a final walk section (like the 6:00 W in the second workout)
+        if (runWalkIntervals.Any(i => i.FinalWalkDuration > TimeSpan.Zero))
+        {
+            foreach (var interval in runWalkIntervals)
+            {
+                var finalWalkDistance = CalculateDistanceBasedOnDuration(
+                    interval.FinalWalkDuration,
+                    walkPaceRange);
+
+                var finalWalkStep = SimpleStep.SimpleStepBuilder
+                    .CreateBuilder()
+                    .WithType(StepType.Walk)
+                    .WithKilometers(finalWalkDistance)
+                    .WithPaceRange(walkPaceRange)
+                    .Build();
+
+                var walkStep = Step.StepBuilder
+                    .CreateBuilder()
+                    .WithSimpleStep(finalWalkStep)
+                    .Build();
+
+                workoutBuilder.WithStep(walkStep);
+            }
         }
 
         return workoutBuilder.Build();
