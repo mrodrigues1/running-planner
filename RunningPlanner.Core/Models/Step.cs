@@ -1,52 +1,59 @@
 ﻿namespace RunningPlanner.Core.Models;
 
-public class Step
+/// <summary>
+/// Represents a workout step that can either be a simple step or a repeated sequence.
+/// </summary>
+public record Step
 {
-    private Step()
+    /// <summary>
+    /// Gets the simple step if this is a single-step configuration.
+    /// </summary>
+    public SimpleStep? SimpleStep { get; }
+
+    /// <summary>
+    /// Gets the repeat if this is a repeating-step configuration.
+    /// </summary>
+    public Repeat? Repeat { get; }
+
+    private Step(SimpleStep? simpleStep, Repeat? repeat)
     {
+        if (simpleStep is not null && repeat is not null)
+        {
+            throw new ArgumentException("Step cannot contain both simple step and repeat.");
+        }
+
+        if (simpleStep is null && repeat is null)
+        {
+            throw new ArgumentException("Step must contain either simple step or repeat.");
+        }
+
+        SimpleStep = simpleStep;
+        Repeat = repeat;
     }
 
-    public SimpleStep? SimpleStep { get; private set; }
-    public Repeat? Repeat { get; private set; }
-
-    public class StepBuilder
+    /// <summary>
+    /// Creates a step containing a simple step.
+    /// </summary>
+    /// <param name="simpleStep">The simple step to include.</param>
+    /// <returns>A new Step instance.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when simpleStep is null.</exception>
+    public static Step FromSimpleStep(SimpleStep simpleStep)
     {
-        private readonly Step _step;
+        ArgumentNullException.ThrowIfNull(simpleStep);
 
-        private StepBuilder()
-        {
-            _step = new Step();
-        }
+        return new Step(simpleStep, null);
+    }
 
-        public StepBuilder WithSimpleStep(SimpleStep simpleStep)
-        {
-            _step.SimpleStep = simpleStep;
+    /// <summary>
+    /// Creates a step containing a repeat.
+    /// </summary>
+    /// <param name="repeat">The repeat to include.</param>
+    /// <returns>A new Step instance.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when repeat is null.</exception>
+    public static Step FromRepeat(Repeat repeat)
+    {
+        ArgumentNullException.ThrowIfNull(repeat);
 
-            return this;
-        }
-
-        public StepBuilder WithRepeat(Repeat repeat)
-        {
-            _step.Repeat = repeat;
-
-            return this;
-        }
-
-        public Step Build()
-        {
-            if (_step.SimpleStep is not null && _step.Repeat is not null)
-            {
-                throw new ArgumentException("Step cannot contain both simple step and repeat.");
-            }
-
-            if (_step.SimpleStep is null && _step.Repeat is null)
-            {
-                throw new ArgumentException("Step must contain either simple step or repeat.");
-            }
-
-            return _step;
-        }
-
-        public static StepBuilder CreateBuilder() => new();
+        return new Step(null, repeat);
     }
 }
