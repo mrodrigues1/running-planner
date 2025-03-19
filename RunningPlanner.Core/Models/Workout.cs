@@ -231,12 +231,10 @@ public class Workout
 
         public WorkoutBuilder WithSimpleRunStep(decimal distance, (TimeSpan min, TimeSpan max) pace)
         {
-            var simpleStep = SimpleStep.SimpleStepBuilder
-                .CreateBuilder()
-                .WithType(StepType.Run)
-                .WithKilometers(distance)
-                .WithPaceRange(pace)
-                .Build();
+            var simpleStep = SimpleStep.CreateWithKilometers(
+                StepType.Run,
+                distance,
+                IntensityTarget.Pace(pace.min, pace.max));
 
             var step = Step.StepBuilder
                 .CreateBuilder()
@@ -253,12 +251,10 @@ public class Workout
             decimal distance,
             (TimeSpan min, TimeSpan max) pace)
         {
-            var simpleStep = SimpleStep.SimpleStepBuilder
-                .CreateBuilder()
-                .WithType(stepType)
-                .WithKilometers(distance)
-                .WithPaceRange(pace)
-                .Build();
+            var simpleStep = SimpleStep.CreateWithKilometers(
+                stepType,
+                distance,
+                IntensityTarget.Pace(pace.min, pace.max));
 
             var step = Step.StepBuilder
                 .CreateBuilder()
@@ -272,12 +268,7 @@ public class Workout
 
         public WorkoutBuilder WithRaceStep(decimal distance)
         {
-            var simpleStep = SimpleStep.SimpleStepBuilder
-                .CreateBuilder()
-                .WithType(StepType.Run)
-                .WithKilometers(distance)
-                .WithNoTargetPaceRange()
-                .Build();
+            var simpleStep = SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.None());
 
             var step = Step.StepBuilder
                 .CreateBuilder()
@@ -296,33 +287,29 @@ public class Workout
             (TimeSpan min, TimeSpan max) intervalPace,
             (TimeSpan min, TimeSpan max) restPace)
         {
-            var repeatBuilder = Repeat.RepeatBuilder
-                .CreateBuilder()
-                .WithCount(repeats * 2);
+            var steps = new List<SimpleStep>();
 
             for (var i = 0; i < repeats; i++)
             {
-                var runStep = SimpleStep.SimpleStepBuilder
-                    .CreateBuilder()
-                    .WithType(StepType.Run)
-                    .WithKilometers(repeatDistance)
-                    .WithPaceRange(intervalPace)
-                    .Build();
+                var runStep = SimpleStep
+                    .CreateWithKilometers(
+                        StepType.Run,
+                        repeatDistance,
+                        IntensityTarget.Pace(intervalPace.min, intervalPace.max));
 
-                var restStep = SimpleStep.SimpleStepBuilder
-                    .CreateBuilder()
-                    .WithType(StepType.Recover)
-                    .WithKilometers(restDistance)
-                    .WithPaceRange(restPace)
-                    .Build();
+                var restStep = SimpleStep
+                    .CreateWithKilometers(
+                        StepType.Recover,
+                        restDistance,
+                        IntensityTarget.Pace(restPace.min, restPace.max));
 
-                repeatBuilder
-                    .WithStep(runStep)
-                    .WithStep(restStep);
+                steps.Add(runStep);
+                steps.Add(restStep);
             }
 
-            var repeat = repeatBuilder
-                .Build();
+            var totalRepeats = repeats * 2;
+
+            var repeat = Repeat.Create(totalRepeats, steps);
 
             var step = Step.StepBuilder
                 .CreateBuilder()

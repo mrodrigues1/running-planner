@@ -332,36 +332,33 @@ public static class WorkoutExtensions
 
         foreach (var runWalkInterval in runWalkIntervals)
         {
-            // Create a repeat for the walk/run intervals
-            var repeatBuilder = Repeat.RepeatBuilder
-                .CreateBuilder()
-                .WithCount(runWalkInterval.RepeatCount * 2); // *2 because each interval has 2 steps (walk + run)
-
             var runDistance = CalculateDistanceBasedOnDuration(runWalkInterval.RunDuration, runPaceRange);
             var walkDistance = CalculateDistanceBasedOnDuration(runWalkInterval.WalkDuration, walkPaceRange);
 
+            var steps = new List<SimpleStep>();
+
             for (int i = 0; i < runWalkInterval.RepeatCount; i++)
             {
-                var runStep = SimpleStep.SimpleStepBuilder
-                    .CreateBuilder()
-                    .WithType(StepType.Run)
-                    .WithKilometers(runDistance)
-                    .WithPaceRange(runPaceRange)
-                    .Build();
+                var runStep = SimpleStep
+                    .CreateWithKilometers(
+                        StepType.Run,
+                        runDistance,
+                        IntensityTarget.Pace(runPaceRange.min, runPaceRange.max));
 
-                var walkStep = SimpleStep.SimpleStepBuilder
-                    .CreateBuilder()
-                    .WithType(StepType.Walk)
-                    .WithKilometers(walkDistance)
-                    .WithPaceRange(walkPaceRange)
-                    .Build();
+                var walkStep = SimpleStep
+                    .CreateWithKilometers(
+                        StepType.Walk,
+                        walkDistance,
+                        IntensityTarget.Pace(walkPaceRange.min, walkPaceRange.max));
 
-                repeatBuilder
-                    .WithStep(runStep)
-                    .WithStep(walkStep);
+                steps.Add(runStep);
+                steps.Add(walkStep);
             }
 
-            var repeat = repeatBuilder.Build();
+            // Create a repeat for the walk/run intervals
+            var totalRepeats = runWalkInterval.RepeatCount * 2; // *2 because each interval has 2 steps (walk + run)
+
+            var repeat = Repeat.Create(totalRepeats, steps);
 
             var step = Step.StepBuilder
                 .CreateBuilder()
@@ -381,12 +378,11 @@ public static class WorkoutExtensions
                     interval.ContinuousEasyDuration,
                     runPaceRange);
 
-                var continuousEasyStep = SimpleStep.SimpleStepBuilder
-                    .CreateBuilder()
-                    .WithType(StepType.Run)
-                    .WithKilometers(continuousEasyDistance)
-                    .WithPaceRange(runPaceRange)
-                    .Build();
+                var continuousEasyStep = SimpleStep
+                    .CreateWithKilometers(
+                        StepType.Run,
+                        continuousEasyDistance,
+                        IntensityTarget.Pace(runPaceRange.min, runPaceRange.max));
 
                 var easyStep = Step.StepBuilder
                     .CreateBuilder()
@@ -406,12 +402,11 @@ public static class WorkoutExtensions
                     interval.FinalWalkDuration,
                     walkPaceRange);
 
-                var finalWalkStep = SimpleStep.SimpleStepBuilder
-                    .CreateBuilder()
-                    .WithType(StepType.Walk)
-                    .WithKilometers(finalWalkDistance)
-                    .WithPaceRange(walkPaceRange)
-                    .Build();
+                var finalWalkStep = SimpleStep
+                    .CreateWithKilometers(
+                        StepType.Walk,
+                        finalWalkDistance,
+                        IntensityTarget.Pace(walkPaceRange.min, walkPaceRange.max));
 
                 var walkStep = Step.StepBuilder
                     .CreateBuilder()

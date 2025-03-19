@@ -5,83 +5,55 @@
 /// </summary>
 public class Repeat
 {
-    public int RepetitionCount { get; private set; }
+    /// <summary>
+    /// Gets the number of times the steps should be repeated.
+    /// </summary>
+    public int RepetitionCount { get; }
 
     /// <summary>
     /// Gets the collection of steps to be repeated.
     /// </summary>
-    public IReadOnlyList<SimpleStep> RepeatableSteps => _steps.AsReadOnly();
+    public IReadOnlyList<SimpleStep> RepeatableSteps { get; }
 
-    private readonly List<SimpleStep> _steps;
-
-
-    private Repeat()
+    private Repeat(int repetitionCount, IEnumerable<SimpleStep> steps)
     {
-        _steps = new List<SimpleStep>();
-    }
-
-    /// <summary>
-    /// Validates that the repeat configuration is valid.
-    /// </summary>
-    /// <exception cref="ArgumentException">Thrown when validation fails.</exception>
-    private void Validate()
-    {
-        if (RepetitionCount < 1)
+        if (repetitionCount < 1)
         {
             throw new ArgumentException("Repeat count must be at least 1.");
         }
 
-        if (_steps.Count < 1)
+        var stepsList = steps?.ToList() ?? new List<SimpleStep>();
+
+        if (stepsList.Count < 1)
         {
             throw new ArgumentException("Repeat must contain at least one step.");
         }
+
+        // Ensure no null steps
+        if (stepsList.Any(step => step == null))
+        {
+            throw new ArgumentNullException(nameof(steps), "Steps collection cannot contain null elements.");
+        }
+
+        RepetitionCount = repetitionCount;
+        RepeatableSteps = stepsList.AsReadOnly();
     }
 
-    public class RepeatBuilder
-    {
-        private readonly Repeat _repeat;
+    /// <summary>
+    /// Creates a new Repeat with the specified count and steps.
+    /// </summary>
+    /// <param name="count">The number of times to repeat the steps.</param>
+    /// <param name="steps">The steps to repeat.</param>
+    /// <returns>A new Repeat instance.</returns>
+    public static Repeat Create(int count, params SimpleStep[] steps) =>
+        new(count, steps);
 
-        private RepeatBuilder()
-        {
-            _repeat = new Repeat();
-        }
-
-        public RepeatBuilder WithCount(int count)
-        {
-            _repeat.RepetitionCount = count;
-
-            return this;
-        }
-
-        /// <summary>
-        /// Adds a step to be repeated.
-        /// </summary>
-        /// <param name="step">The step to add.</param>
-        /// <returns>The builder instance for method chaining.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when step is null.</exception>
-        public RepeatBuilder WithStep(SimpleStep step)
-        {
-            ArgumentNullException.ThrowIfNull(step);
-
-            _repeat._steps.Add(step);
-
-            return this;
-        }
-
-
-        /// <summary>
-        /// Builds and validates the Repeat instance.
-        /// </summary>
-        /// <returns>A configured Repeat instance.</returns>
-        /// <exception cref="ArgumentException">Thrown when validation fails.</exception>
-        public Repeat Build()
-        {
-            _repeat.Validate();
-
-            return _repeat;
-        }
-
-
-        public static RepeatBuilder CreateBuilder() => new();
-    }
+    /// <summary>
+    /// Creates a new Repeat with the specified count and collection of steps.
+    /// </summary>
+    /// <param name="count">The number of times to repeat the steps.</param>
+    /// <param name="steps">The steps to repeat.</param>
+    /// <returns>A new Repeat instance.</returns>
+    public static Repeat Create(int count, IEnumerable<SimpleStep> steps) =>
+        new(count, steps);
 }
