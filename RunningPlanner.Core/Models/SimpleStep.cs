@@ -16,7 +16,8 @@ public class SimpleStep
 
     private Distance CalculateEstimatedDistance()
     {
-        long totalTicks = Duration.Time?.Ticks ?? 0;
+        var timeDuration = Duration as Duration.TimeDuration;
+        long totalTicks = timeDuration?.Time.Ticks ?? 0;
 
         long avgPaceTicks = IntensityTarget?.Average.Ticks ?? 0;
 
@@ -27,9 +28,10 @@ public class SimpleStep
 
     private Distance CalculateTotalDistance()
     {
-        var stepDistance = Duration?.DistanceValue ?? 0;
+        var distanceDuration = Duration as Duration.DistanceDuration;
+        var stepDistance = distanceDuration?.Value ?? 0;
 
-        var distanceMetric = Duration?.DistanceMetric ?? DistanceMetric.Invalid;
+        var distanceMetric = distanceDuration?.Metric ?? DistanceMetric.Invalid;
 
         return distanceMetric is DistanceMetric.Kilometers
             ? Distance.Kilometers(stepDistance)
@@ -38,8 +40,9 @@ public class SimpleStep
 
     private TimeSpan CalculateEstimatedTime()
     {
+        var distanceDuration = Duration as Duration.DistanceDuration;
         var averagePace = IntensityTarget?.Average ?? TimeSpan.MinValue;
-        var distance = Duration?.DistanceValue ?? 0;
+        var distance = distanceDuration?.Value ?? 0;
         var totalTicks = averagePace.Ticks * distance;
 
         return new TimeSpan((long) totalTicks);
@@ -47,7 +50,8 @@ public class SimpleStep
 
     public TimeSpan CalculateTotalTime()
     {
-        var totalTicks = Duration.Time?.Ticks ?? 0;
+        var timeDuration = Duration as Duration.TimeDuration;
+        var totalTicks = timeDuration?.Time.Ticks ?? 0;
 
         return new TimeSpan(totalTicks);
     }
@@ -84,10 +88,7 @@ public class SimpleStep
 
         public SimpleStepBuilder WithKilometers(decimal distance)
         {
-            var duration = Duration.DurationBuilder
-                .CreateBuilder()
-                .WithKilometers(distance)
-                .Build();
+            var duration = Duration.ForKilometers(distance);
 
             WithDuration(duration);
 

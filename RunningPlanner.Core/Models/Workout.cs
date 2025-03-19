@@ -32,10 +32,14 @@ public class Workout
                 x => x.SimpleStep is not null
                     ? [x.SimpleStep]
                     : x.Repeat?.RepeatableSteps ?? [])
-            .Select(x => x.Duration?.DistanceMetric)
-            .First();
+            .Select(
+                x => x.Duration is Duration.DistanceDuration distanceDuration
+                    ? distanceDuration.Metric
+                    : DistanceMetric.Invalid)
+            .FirstOrDefault();
 
-        workoutName.Add($"{TotalDistance.DistanceValue.ToString(CultureInfo.InvariantCulture)} {metric.ToString()}");
+        workoutName.Add(
+            $"{TotalDistance.DistanceValue.ToString(CultureInfo.InvariantCulture)} {metric.ToString() ?? "km"}");
 
         return string.Join(" - ", workoutName);
     }
