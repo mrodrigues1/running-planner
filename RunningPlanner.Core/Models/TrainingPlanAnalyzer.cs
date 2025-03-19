@@ -265,19 +265,21 @@ public class TrainingPlanAnalyzer
                 var phaseWeekCount = phase.Count();
                 var phaseKilometers = phase.Sum(w => w.TotalKilometerMileage);
 
-                result[phase.Key] = new PhaseAnalysis
-                {
-                    WeekCount = phaseWeekCount,
-                    PercentageOfTotalPlan = Math.Round((decimal) phaseWeekCount / totalWeeks * 100, 0,
+                result[phase.Key] = new PhaseAnalysis(
+                    phaseWeekCount,
+                    Math.Round(
+                        (decimal) phaseWeekCount / totalWeeks * 100,
+                        0,
                         MidpointRounding.AwayFromZero),
-                    TotalKilometers = Math.Round(phaseKilometers, 0, MidpointRounding.AwayFromZero),
-                    AverageWeeklyKilometers =
-                        Math.Round(phaseKilometers / phaseWeekCount, 0, MidpointRounding.AwayFromZero),
-                    PercentageOfTotalDistance = Math.Round((phaseKilometers / totalPlanKilometers) * 100, 0,
+                    Math.Round(phaseKilometers, 0, MidpointRounding.AwayFromZero),
+                    Math.Round(phaseKilometers / phaseWeekCount, 0, MidpointRounding.AwayFromZero),
+                    Math.Round(
+                        (phaseKilometers / totalPlanKilometers) * 100,
+                        0,
                         MidpointRounding.AwayFromZero),
-                    HighestWeekKilometers = phase.Max(w => w.TotalKilometerMileage),
-                    LowestWeekKilometers = phase.Min(w => w.TotalKilometerMileage)
-                };
+                    phase.Max(w => w.TotalKilometerMileage),
+                    phase.Min(w => w.TotalKilometerMileage)
+                );
             }
 
             return result;
@@ -319,7 +321,7 @@ public class TrainingPlanAnalyzer
             // Analyze progression between phases
             var orderedPhases = _trainingPlan.TrainingWeeks
                 .GroupBy(w => w.TrainingPhase)
-                .OrderBy(g => g.Min(w => _trainingPlan.TrainingWeeks.IndexOf(w)))
+                .OrderBy(g => g.Min(w => _trainingPlan.TrainingWeeks.ToList().IndexOf(w)))
                 .Select(g => g.Key)
                 .Where(p => p != TrainingPhase.Invalid);
 
@@ -332,8 +334,9 @@ public class TrainingPlanAnalyzer
                 if (previousPhase != null)
                 {
                     var averageChange =
-                        ((currentPhase.AverageWeeklyKilometers - previousPhase.Value.Analysis.AverageWeeklyKilometers)
-                         / previousPhase.Value.Analysis.AverageWeeklyKilometers) * 100;
+                        ((currentPhase.AverageWeeklyKilometers - previousPhase.Value.Analysis.AverageWeeklyKilometers) /
+                         previousPhase.Value.Analysis.AverageWeeklyKilometers) *
+                        100;
 
                     analysis.Add(
                         $"Transition from {previousPhase.Value.TrainingPhase} to {phaseType}: " +
