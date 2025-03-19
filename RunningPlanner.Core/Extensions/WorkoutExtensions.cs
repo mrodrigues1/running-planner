@@ -360,10 +360,7 @@ public static class WorkoutExtensions
 
             var repeat = Repeat.Create(totalRepeats, steps);
 
-            var step = Step.StepBuilder
-                .CreateBuilder()
-                .WithRepeat(repeat)
-                .Build();
+            var step = Step.FromRepeat(repeat);
 
             workoutBuilder.WithStep(step);
         }
@@ -384,10 +381,7 @@ public static class WorkoutExtensions
                         continuousEasyDistance,
                         IntensityTarget.Pace(runPaceRange.min, runPaceRange.max));
 
-                var easyStep = Step.StepBuilder
-                    .CreateBuilder()
-                    .WithSimpleStep(continuousEasyStep)
-                    .Build();
+                var easyStep = Step.FromSimpleStep(continuousEasyStep);
 
                 workoutBuilder.WithStep(easyStep);
             }
@@ -408,10 +402,7 @@ public static class WorkoutExtensions
                         finalWalkDistance,
                         IntensityTarget.Pace(walkPaceRange.min, walkPaceRange.max));
 
-                var walkStep = Step.StepBuilder
-                    .CreateBuilder()
-                    .WithSimpleStep(finalWalkStep)
-                    .Build();
+                var walkStep = Step.FromSimpleStep( finalWalkStep);
 
                 workoutBuilder.WithStep(walkStep);
             }

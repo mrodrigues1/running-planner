@@ -236,10 +236,7 @@ public class Workout
                 distance,
                 IntensityTarget.Pace(pace.min, pace.max));
 
-            var step = Step.StepBuilder
-                .CreateBuilder()
-                .WithSimpleStep(simpleStep)
-                .Build();
+            var step = Step.FromSimpleStep(simpleStep);
 
             WithStep(step);
 
@@ -256,10 +253,7 @@ public class Workout
                 distance,
                 IntensityTarget.Pace(pace.min, pace.max));
 
-            var step = Step.StepBuilder
-                .CreateBuilder()
-                .WithSimpleStep(simpleStep)
-                .Build();
+            var step = Step.FromSimpleStep(simpleStep);
 
             WithStep(step);
 
@@ -270,10 +264,7 @@ public class Workout
         {
             var simpleStep = SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.None());
 
-            var step = Step.StepBuilder
-                .CreateBuilder()
-                .WithSimpleStep(simpleStep)
-                .Build();
+            var step = Step.FromSimpleStep(simpleStep);
 
             WithStep(step);
 
@@ -311,10 +302,7 @@ public class Workout
 
             var repeat = Repeat.Create(totalRepeats, steps);
 
-            var step = Step.StepBuilder
-                .CreateBuilder()
-                .WithRepeat(repeat)
-                .Build();
+            var step = Step.FromRepeat(repeat);
 
             WithStep(step);
 
