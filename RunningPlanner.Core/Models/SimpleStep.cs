@@ -19,7 +19,8 @@ public class SimpleStep
         var timeDuration = Duration as Duration.TimeDuration;
         long totalTicks = timeDuration?.Time.Ticks ?? 0;
 
-        long avgPaceTicks = IntensityTarget?.Average.Ticks ?? 0;
+        var paceIntensity = IntensityTarget as IntensityTarget.PaceIntensity;
+        long avgPaceTicks = paceIntensity?.Average.Ticks ?? 0;
 
         decimal estimatedDistance = (decimal) totalTicks / (decimal) avgPaceTicks;
 
@@ -40,8 +41,9 @@ public class SimpleStep
 
     private TimeSpan CalculateEstimatedTime()
     {
+        var paceIntensity = IntensityTarget as IntensityTarget.PaceIntensity;
         var distanceDuration = Duration as Duration.DistanceDuration;
-        var averagePace = IntensityTarget?.Average ?? TimeSpan.MinValue;
+        var averagePace = paceIntensity?.Average ?? TimeSpan.MinValue;
         var distance = distanceDuration?.Value ?? 0;
         var totalTicks = averagePace.Ticks * distance;
 
@@ -97,11 +99,7 @@ public class SimpleStep
 
         public SimpleStepBuilder WithPaceRange((TimeSpan paceMin, TimeSpan paceMax) paceRange)
         {
-            var intensityTarget = IntensityTarget.IntensityTargetBuilder
-                .CreateBuilder()
-                .WithType(IntensityTargetType.Pace)
-                .WithPaceRange(paceRange.paceMin, paceRange.paceMax)
-                .Build();
+            var intensityTarget = IntensityTarget.Pace(paceRange.paceMin, paceRange.paceMax);
 
             WithIntensityTarget(intensityTarget);
 
@@ -110,10 +108,7 @@ public class SimpleStep
 
         public SimpleStepBuilder WithNoTargetPaceRange()
         {
-            var intensityTarget = IntensityTarget.IntensityTargetBuilder
-                .CreateBuilder()
-                .WithType(IntensityTargetType.NoTarget)
-                .Build();
+            var intensityTarget = IntensityTarget.None();
 
             WithIntensityTarget(intensityTarget);
 
