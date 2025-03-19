@@ -20,13 +20,9 @@ public class SimpleStep
 
         long avgPaceTicks = IntensityTarget?.Average.Ticks ?? 0;
 
-        decimal paceTicks = (decimal) totalTicks / (decimal) avgPaceTicks;
-        var calculateEstimatedDistance = Math.Round(paceTicks, MidpointRounding.AwayFromZero);
+        decimal estimatedDistance = (decimal) totalTicks / (decimal) avgPaceTicks;
 
-        return Distance.DistanceBuilder
-            .CreateBuilder()
-            .WithKilometers(calculateEstimatedDistance)
-            .Build();
+        return Distance.Kilometers(Math.Round(estimatedDistance, MidpointRounding.AwayFromZero));
     }
 
     private Distance CalculateTotalDistance()
@@ -36,14 +32,8 @@ public class SimpleStep
         var distanceMetric = Duration?.DistanceMetric ?? DistanceMetric.Invalid;
 
         return distanceMetric is DistanceMetric.Kilometers
-            ? Distance.DistanceBuilder
-                .CreateBuilder()
-                .WithKilometers(stepDistance)
-                .Build()
-            : Distance.DistanceBuilder
-                .CreateBuilder()
-                .WithMiles(stepDistance)
-                .Build();
+            ? Distance.Kilometers(stepDistance)
+            : Distance.Miles(stepDistance);
     }
 
     private TimeSpan CalculateEstimatedTime()
@@ -91,7 +81,7 @@ public class SimpleStep
 
             return this;
         }
-        
+
         public SimpleStepBuilder WithKilometers(decimal distance)
         {
             var duration = Duration.DurationBuilder
@@ -100,7 +90,7 @@ public class SimpleStep
                 .Build();
 
             WithDuration(duration);
-            
+
             return this;
         }
 
@@ -113,10 +103,10 @@ public class SimpleStep
                 .Build();
 
             WithIntensityTarget(intensityTarget);
-            
+
             return this;
         }
-        
+
         public SimpleStepBuilder WithNoTargetPaceRange()
         {
             var intensityTarget = IntensityTarget.IntensityTargetBuilder
@@ -125,14 +115,13 @@ public class SimpleStep
                 .Build();
 
             WithIntensityTarget(intensityTarget);
-            
+
             return this;
         }
 
         public SimpleStep Build()
         {
-            if (_step.Type == StepType.Invalid
-                || !Enum.IsDefined(_step.Type))
+            if (_step.Type == StepType.Invalid || !Enum.IsDefined(_step.Type))
             {
                 throw new ArgumentException("Invalid step type.");
             }

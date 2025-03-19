@@ -1,74 +1,32 @@
 ﻿namespace RunningPlanner.Core.Models;
 
-public class Distance
+public record Distance
 {
-    private Distance()
+    private Distance(decimal value, DistanceMetric metric)
     {
+        if (value < 0)
+        {
+            throw new ArgumentException("Distance cannot be negative.");
+        }
+
+        if (metric is DistanceMetric.Invalid || !Enum.IsDefined(metric))
+        {
+            throw new ArgumentException("Invalid distance metric.");
+        }
+        
+        DistanceValue = value;
+        DistanceMetric = metric;
     }
 
-    public decimal DistanceValue { get; private set; }
-    public DistanceMetric DistanceMetric { get; private set; }
+    public decimal DistanceValue { get; }
+    public DistanceMetric DistanceMetric { get; }
 
-    public class DistanceBuilder
-    {
-        private readonly Distance _distance;
-
-        public DistanceBuilder()
-        {
-            _distance = new Distance();
-        }
-
-        public DistanceBuilder WithValue(decimal value)
-        {
-            _distance.DistanceValue = value;
-
-            return this;
-        }
-
-        public DistanceBuilder WithMetric(DistanceMetric metric)
-        {
-            _distance.DistanceMetric = metric;
-
-            return this;
-        }
-
-        public DistanceBuilder WithKilometers(decimal value)
-        {
-            _distance.DistanceMetric = DistanceMetric.Kilometers;
-
-            _distance.DistanceValue = value;
-
-            return this;
-        }
-
-        public DistanceBuilder WithMiles(decimal value)
-        {
-            _distance.DistanceMetric = DistanceMetric.Miles;
-
-            _distance.DistanceValue = value;
-
-            return this;
-        }
-
-        public Distance Build()
-        {
-            if (_distance.DistanceValue < 0)
-            {
-                throw new ArgumentException("Distance cannot be negative.");
-            }
-
-            if (_distance.DistanceMetric is DistanceMetric.Invalid
-                || !Enum.IsDefined(_distance.DistanceMetric))
-            {
-                throw new ArgumentException("Invalid distance metric.");
-            }
-
-            return _distance;
-        }
-
-        public static DistanceBuilder CreateBuilder() => new();
-    }
+    // Factory methods for common use cases
+    public static Distance Kilometers(decimal value) => new(value, DistanceMetric.Kilometers);
+    public static Distance Miles(decimal value) => new(value, DistanceMetric.Miles);
+    public static Distance Meters(decimal value) => new(value, DistanceMetric.Meters);
 }
+
 
 public enum DistanceMetric
 {

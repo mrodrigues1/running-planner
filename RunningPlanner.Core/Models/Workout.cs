@@ -73,10 +73,7 @@ public class Workout
                     : x.Repeat?.RepeatableSteps ?? [])
             .Sum(step => step.TotalDistance.DistanceValue);
 
-        return Distance.DistanceBuilder
-            .CreateBuilder()
-            .WithKilometers(Math.Round(distance, 1, MidpointRounding.AwayFromZero))
-            .Build();
+        return Distance.Kilometers(Math.Round(distance, 1, MidpointRounding.AwayFromZero));
     }
 
     private Distance CalculateEstimatedDistance()
@@ -88,10 +85,7 @@ public class Workout
                     : x.Repeat?.RepeatableSteps ?? [])
             .Sum(step => step.EstimatedDistance.DistanceValue);
 
-        return Distance.DistanceBuilder
-            .CreateBuilder()
-            .WithKilometers(estimatedDistance)
-            .Build();
+        return Distance.Kilometers(estimatedDistance);
     }
 
 

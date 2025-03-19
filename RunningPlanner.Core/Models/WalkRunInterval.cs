@@ -1,3 +1,8 @@
 ﻿namespace RunningPlanner.Core.Models;
 
-public record WalkRunInterval(int Count, TimeSpan RunDuration, TimeSpan WalkDuration);
+public record WalkRunInterval(
+    int RepeatCount,
+    TimeSpan RunDuration,
+    TimeSpan WalkDuration,
+    TimeSpan ContinuousEasyDuration = default,
+    TimeSpan FinalWalkDuration = default);
