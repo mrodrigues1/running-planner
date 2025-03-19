@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a sequence of steps that should be executed multiple times.
 /// </summary>
-public class Repeat
+public record Repeat
 {
     /// <summary>
     /// Gets the number of times the steps should be repeated.
