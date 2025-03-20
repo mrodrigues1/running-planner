@@ -14,7 +14,7 @@ public class JackDanielsMarathonNoviceSections18To16UntilRace
     public static Workout CreateSessionA()
     {
         // 15 × 1:00 E w/1:00 W
-        return WorkoutExtensions.CreateRunWalkWorkout(
+        return Workout.CreateRunWalkWorkout(
             EasyPaceRange(),
             WalkPaceRange(),
             new WalkRunInterval(15, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1))
@@ -36,7 +36,7 @@ public class JackDanielsMarathonNoviceSections18To16UntilRace
     public static Workout CreateSessionC()
     {
         // 9 × 1:00 E w/1:00 W + 3 × 2:00 E w/2:00 W
-        return WorkoutExtensions.CreateRunWalkWorkout(
+        return Workout.CreateRunWalkWorkout(
             EasyPaceRange(),
             WalkPaceRange(),
             new WalkRunInterval(9, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)),
@@ -59,14 +59,14 @@ public class JackDanielsMarathonNoviceSections18To16UntilRace
     public static Workout CreateSessionE()
     {
         // 9 × 1:00 E w/1:00 W + 2 × 3:00 E w/3:00 W
-        return WorkoutExtensions.CreateRunWalkWorkout(
+        return Workout.CreateRunWalkWorkout(
             EasyPaceRange(),
             WalkPaceRange(),
             new WalkRunInterval(9, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)),
             new WalkRunInterval(2, TimeSpan.FromMinutes(3), TimeSpan.FromMinutes(3))
         );
     }
-    
+
     /// <summary>
     /// Defines the easy running pace range for novice runners (per kilometer)
     /// </summary>
