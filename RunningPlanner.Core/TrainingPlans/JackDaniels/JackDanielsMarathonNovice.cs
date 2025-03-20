@@ -131,6 +131,72 @@ public class JackDanielsMarathonNovice
             sunday: Workout.CreateRest());
     }
 
+    /// <summary>
+    /// Week 4 of the Jack Daniels Novice Marathon plan (15 weeks until race)
+    /// </summary>
+    private TrainingWeek GenerateWeek4()
+    {
+        return TrainingWeek.Create(
+            weekNumber: 4,
+            trainingPhase: TrainingPhase.Base,
+            monday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(4, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5))),
+            tuesday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(4, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5))),
+            wednesday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(10, TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2))),
+            thursday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(10, TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2))),
+            friday: Workout.CreateRest(),
+            saturday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(5, TimeSpan.FromMinutes(4), TimeSpan.FromMinutes(4))),
+            sunday: Workout.CreateRest());
+    }
+
+    /// <summary>
+    /// Week 5 of the Jack Daniels Novice Marathon plan (14 weeks until race)
+    /// </summary>
+    private TrainingWeek GenerateWeek5()
+    {
+        return TrainingWeek.Create(
+            weekNumber: 5,
+            trainingPhase: TrainingPhase.Base,
+            monday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(4, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5))),
+            tuesday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(4, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5))),
+            wednesday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(10, TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2))),
+            thursday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(10, TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2))),
+            friday: Workout.CreateRest(),
+            saturday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(3, TimeSpan.FromMinutes(4), TimeSpan.FromMinutes(4)),
+                new WalkRunInterval(1, TimeSpan.FromMinutes(15), TimeSpan.Zero),
+                new WalkRunInterval(1, TimeSpan.Zero, TimeSpan.FromMinutes(6))),
+            sunday: Workout.CreateRest());
+    }
+
     // Pace calculation methods for Novice runners
     private static (TimeSpan min, TimeSpan max) EasyPaceRange()
     {

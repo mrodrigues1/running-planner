@@ -3,6 +3,4 @@
 public record WalkRunInterval(
     int RepeatCount,
     TimeSpan RunDuration,
-    TimeSpan WalkDuration,
-    TimeSpan ContinuousEasyDuration = default,
-    TimeSpan FinalWalkDuration = default);
+    TimeSpan WalkDuration);

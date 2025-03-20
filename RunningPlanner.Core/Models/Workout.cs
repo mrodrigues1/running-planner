@@ -648,47 +648,6 @@ public record Workout
             steps.Add(Step.FromRepeat(Repeat.Create(totalRepeats, simpleSteps)));
         }
 
-        // If there's a continuous easy section (like the 15:00-20:00 E in the second workout),
-        // add it as a separate step
-        if (runWalkIntervals.Any(i => i.ContinuousEasyDuration > TimeSpan.Zero))
-        {
-            foreach (var interval in runWalkIntervals)
-            {
-                var continuousEasyDistance = CalculateDistanceBasedOnDuration(
-                    interval.ContinuousEasyDuration,
-                    runPaceRange);
-
-                var continuousEasyStep = Step.FromSimpleStep(
-                    SimpleStep
-                        .CreateWithKilometers(
-                            StepType.Run,
-                            continuousEasyDistance,
-                            IntensityTarget.Pace(runPaceRange.min, runPaceRange.max)));
-
-                steps.Add(continuousEasyStep);
-            }
-        }
-
-        // If there's a final walk section (like the 6:00 W in the second workout)
-        if (runWalkIntervals.Any(i => i.FinalWalkDuration > TimeSpan.Zero))
-        {
-            foreach (var interval in runWalkIntervals)
-            {
-                var finalWalkDistance = CalculateDistanceBasedOnDuration(
-                    interval.FinalWalkDuration,
-                    walkPaceRange);
-
-                var finalWalkStep = Step.FromSimpleStep(
-                    SimpleStep
-                        .CreateWithKilometers(
-                            StepType.Walk,
-                            finalWalkDistance,
-                            IntensityTarget.Pace(walkPaceRange.min, walkPaceRange.max)));
-
-                steps.Add(finalWalkStep);
-            }
-        }
-
         return Create(WorkoutType.WalkRun, steps);
     }
 
