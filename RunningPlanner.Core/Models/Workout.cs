@@ -85,9 +85,9 @@ public record Workout
 
         var metric = Steps
             .SelectMany<Step, SimpleStep>(
-                x => x.SimpleStep is not null
-                    ? [x.SimpleStep]
-                    : x.Repeat?.RepeatableSteps ?? [])
+                step => step is SimpleStep simpleStep
+                    ? [simpleStep]
+                    : (step as Repeat)?.Steps ?? [])
             .Select(
                 x => x.Duration is Duration.DistanceDuration distanceDuration
                     ? distanceDuration.Metric
@@ -107,9 +107,9 @@ public record Workout
     {
         var totalTicks = Steps
             .SelectMany<Step, SimpleStep>(
-                x => x.SimpleStep is not null
-                    ? [x.SimpleStep]
-                    : x.Repeat?.RepeatableSteps ?? [])
+                step => step is SimpleStep simpleStep
+                    ? [simpleStep]
+                    : (step as Repeat)?.Steps ?? [])
             .Sum(step => step.TotalTime.Ticks);
 
         return new TimeSpan(totalTicks);
@@ -122,9 +122,9 @@ public record Workout
     {
         var totalEstimatedTicks = Steps
             .SelectMany<Step, SimpleStep>(
-                x => x.SimpleStep is not null
-                    ? [x.SimpleStep]
-                    : x.Repeat?.RepeatableSteps ?? [])
+                step => step is SimpleStep simpleStep
+                    ? [simpleStep]
+                    : (step as Repeat)?.Steps ?? [])
             .Sum(step => step.EstimatedTime.Ticks);
 
         return new TimeSpan(totalEstimatedTicks);
@@ -137,9 +137,9 @@ public record Workout
     {
         var distance = Steps
             .SelectMany<Step, SimpleStep>(
-                x => x.SimpleStep is not null
-                    ? [x.SimpleStep]
-                    : x.Repeat?.RepeatableSteps ?? [])
+                step => step is SimpleStep simpleStep
+                    ? [simpleStep]
+                    : (step as Repeat)?.Steps ?? [])
             .Sum(step => step.TotalDistance.DistanceValue);
 
         return Distance.Kilometers(Math.Round(distance, 1, MidpointRounding.AwayFromZero));
@@ -152,9 +152,9 @@ public record Workout
     {
         var estimatedDistance = Steps
             .SelectMany<Step, SimpleStep>(
-                x => x.SimpleStep is not null
-                    ? [x.SimpleStep]
-                    : x.Repeat?.RepeatableSteps ?? [])
+                step => step is SimpleStep simpleStep
+                    ? [simpleStep]
+                    : (step as Repeat)?.Steps ?? [])
             .Sum(step => step.EstimatedDistance.DistanceValue);
 
         return Distance.Kilometers(estimatedDistance);
@@ -177,8 +177,7 @@ public record Workout
     /// </summary>
     public static Workout CreateEasyRun(decimal distance, (TimeSpan min, TimeSpan max) pace)
     {
-        var step = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.Pace(pace.min, pace.max)));
+        var step = SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.Pace(pace.min, pace.max));
 
         return new Workout(WorkoutType.EasyRun, [step]);
     }
@@ -188,8 +187,7 @@ public record Workout
     /// </summary>
     public static Workout CreateMediumRun(decimal distance, (TimeSpan min, TimeSpan max) pace)
     {
-        var step = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.Pace(pace.min, pace.max)));
+        var step = SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.Pace(pace.min, pace.max));
 
         return new Workout(WorkoutType.MediumRun, [step]);
     }
@@ -199,8 +197,7 @@ public record Workout
     /// </summary>
     public static Workout CreateLongRun(decimal distance, (TimeSpan min, TimeSpan max) pace)
     {
-        var step = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.Pace(pace.min, pace.max)));
+        var step = SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.Pace(pace.min, pace.max));
 
         return new Workout(WorkoutType.LongRun, [step]);
     }
@@ -210,8 +207,7 @@ public record Workout
     /// </summary>
     public static Workout CreateRacePace(decimal distance, (TimeSpan min, TimeSpan max) pace)
     {
-        var step = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.Pace(pace.min, pace.max)));
+        var step = SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.Pace(pace.min, pace.max));
 
         return new Workout(WorkoutType.RacePace, [step]);
     }
@@ -229,7 +225,7 @@ public record Workout
     /// </summary>
     public static Workout CreateRace(decimal distance)
     {
-        var step = Step.FromSimpleStep(SimpleStep.CreateWithNoTarget(StepType.Run, Duration.ForKilometers(distance)));
+        var step = SimpleStep.CreateWithNoTarget(StepType.Run, Duration.ForKilometers(distance));
 
         return new Workout(WorkoutType.Race, [step]);
     }
@@ -239,11 +235,10 @@ public record Workout
     /// </summary>
     public static Workout CreateRace(decimal distance, (TimeSpan min, TimeSpan max) paceRange)
     {
-        var step = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(
-                StepType.Run,
-                distance,
-                IntensityTarget.Pace(paceRange.min, paceRange.max)));
+        var step = SimpleStep.CreateWithKilometers(
+            StepType.Run,
+            distance,
+            IntensityTarget.Pace(paceRange.min, paceRange.max));
 
         return new Workout(WorkoutType.Race, [step]);
     }
@@ -282,11 +277,10 @@ public record Workout
         // If there's additional distance to cover, we'll add it as an easy run
         decimal additionalEasyDistance = Math.Max(0, remainingDistance - totalRepeatDistance);
 
-        var warmUpStep = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(
-                StepType.WarmUp,
-                warmupDistance,
-                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+        var warmUpStep = SimpleStep.CreateWithKilometers(
+            StepType.WarmUp,
+            warmupDistance,
+            IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max));
 
         var steps = new List<SimpleStep>();
 
@@ -310,13 +304,12 @@ public record Workout
 
         var totalRepeats = repeats * 2;
 
-        var repeatStep = Step.FromRepeat(Repeat.Create(totalRepeats, steps));
+        var repeatStep = Repeat.Create(totalRepeats, steps);
 
-        var coolDownStep = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(
-                StepType.CoolDown,
-                cooldownDistance + additionalEasyDistance,
-                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+        var coolDownStep = SimpleStep.CreateWithKilometers(
+            StepType.CoolDown,
+            cooldownDistance + additionalEasyDistance,
+            IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max));
 
         return
             new Workout(
@@ -375,11 +368,10 @@ public record Workout
                                      (restBeforeStartIntervalDistance ?? 0.0m));
         decimal additionalEasyDistance = Math.Max(0, remainingDistance);
 
-        var warmUpStep = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(
-                StepType.WarmUp,
-                warmupDistance,
-                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+        var warmUpStep = SimpleStep.CreateWithKilometers(
+            StepType.WarmUp,
+            warmupDistance,
+            IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max));
 
         var steps = new List<SimpleStep>();
 
@@ -403,24 +395,22 @@ public record Workout
 
         var totalRepeats = repeats * 2;
 
-        var repeatStep = Step.FromRepeat(Repeat.Create(totalRepeats, steps));
+        var repeatStep = Repeat.Create(totalRepeats, steps);
 
-        var coolDownStep = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(
-                StepType.CoolDown,
-                cooldownDistance + additionalEasyDistance,
-                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+        var coolDownStep = SimpleStep.CreateWithKilometers(
+            StepType.CoolDown,
+            cooldownDistance + additionalEasyDistance,
+            IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max));
 
         var workoutSteps = new List<Step>();
         workoutSteps.Add(warmUpStep);
 
         if (restBeforeStartIntervalDistance.HasValue)
         {
-            var restStep = Step.FromSimpleStep(
-                SimpleStep.CreateWithKilometers(
-                    StepType.Rest,
-                    restBeforeStartIntervalDistance.Value,
-                    IntensityTarget.Pace(recoveryPaceRange.min, recoveryPaceRange.max)));
+            var restStep = SimpleStep.CreateWithKilometers(
+                StepType.Rest,
+                restBeforeStartIntervalDistance.Value,
+                IntensityTarget.Pace(recoveryPaceRange.min, recoveryPaceRange.max));
             workoutSteps.Add(restStep);
         }
 
@@ -462,23 +452,20 @@ public record Workout
         decimal remainingDistance = totalDistance - (warmupDistance + tempoDistance + cooldownDistance);
         decimal additionalEasyDistance = Math.Max(0, remainingDistance);
 
-        var warmUpStep = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(
-                StepType.WarmUp,
-                warmupDistance,
-                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+        var warmUpStep = SimpleStep.CreateWithKilometers(
+            StepType.WarmUp,
+            warmupDistance,
+            IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max));
 
-        var tempoStep = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(
-                StepType.Run,
-                tempoDistance,
-                IntensityTarget.Pace(tempoPaceRange.min, tempoPaceRange.max)));
+        var tempoStep = SimpleStep.CreateWithKilometers(
+            StepType.Run,
+            tempoDistance,
+            IntensityTarget.Pace(tempoPaceRange.min, tempoPaceRange.max));
 
-        var coolDown = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(
-                StepType.CoolDown,
-                cooldownDistance + additionalEasyDistance,
-                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+        var coolDown = SimpleStep.CreateWithKilometers(
+            StepType.CoolDown,
+            cooldownDistance + additionalEasyDistance,
+            IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max));
 
         return Create(
             WorkoutType.TempoRun,
@@ -507,11 +494,10 @@ public record Workout
         (TimeSpan min, TimeSpan max) strideRange,
         (TimeSpan min, TimeSpan max) recoveryPaceRange)
     {
-        var runStep = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(
-                StepType.Run,
-                distance,
-                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+        var runStep = SimpleStep.CreateWithKilometers(
+            StepType.Run,
+            distance,
+            IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max));
 
         var steps = new List<SimpleStep>();
 
@@ -535,7 +521,7 @@ public record Workout
 
         var totalRepeats = strideCount * 2;
 
-        var repeatStep = Step.FromRepeat(Repeat.Create(totalRepeats, steps));
+        var repeatStep = Repeat.Create(totalRepeats, steps);
 
         return Create(
             WorkoutType.EasyRunWithStrides,
@@ -572,23 +558,20 @@ public record Workout
         decimal remainingDistance = totalDistance - (warmupDistance + thresholdDistance + cooldownDistance);
         decimal additionalEasyDistance = Math.Max(0, remainingDistance);
 
-        var warmUpStep = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(
-                StepType.WarmUp,
-                warmupDistance,
-                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+        var warmUpStep = SimpleStep.CreateWithKilometers(
+            StepType.WarmUp,
+            warmupDistance,
+            IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max));
 
-        var thresholdStep = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(
-                StepType.Run,
-                warmupDistance,
-                IntensityTarget.Pace(thresholdPaceRange.min, thresholdPaceRange.max)));
+        var thresholdStep = SimpleStep.CreateWithKilometers(
+            StepType.Run,
+            warmupDistance,
+            IntensityTarget.Pace(thresholdPaceRange.min, thresholdPaceRange.max));
 
-        var coolDown = Step.FromSimpleStep(
-            SimpleStep.CreateWithKilometers(
-                StepType.CoolDown,
-                cooldownDistance + additionalEasyDistance,
-                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+        var coolDown = SimpleStep.CreateWithKilometers(
+            StepType.CoolDown,
+            cooldownDistance + additionalEasyDistance,
+            IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max));
 
         return Create(
             WorkoutType.Threshold,
@@ -645,7 +628,7 @@ public record Workout
             // Create a repeat for the walk/run intervals
             var totalRepeats = runWalkInterval.RepeatCount * 2; // *2 because each interval has 2 steps (walk + run)
 
-            steps.Add(Step.FromRepeat(Repeat.Create(totalRepeats, simpleSteps)));
+            steps.Add(Repeat.Create(totalRepeats, simpleSteps));
         }
 
         return Create(WorkoutType.WalkRun, steps);
