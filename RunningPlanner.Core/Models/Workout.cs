@@ -259,7 +259,7 @@ public record Workout
     /// <param name="warmupDistance">Distance for the warmup in kilometers (default is 2.0).</param>
     /// <param name="cooldownDistance">Distance for the cooldown in kilometers (default is 2.0).</param>
     /// <returns>A hill workout object containing the specified warmup, hill repeats, cooldown, and any necessary additional distance.</returns>
-    public static Workout CreateHillRepeatWorkout(
+    public static Workout CreateHillRepeat(
         int repeats,
         decimal totalDistance,
         (TimeSpan min, TimeSpan max) easyPaceRange,
