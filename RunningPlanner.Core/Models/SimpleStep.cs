@@ -29,19 +29,21 @@ public record SimpleStep
     // Factory methods for common use cases
     public static SimpleStep Create(StepType type, Duration duration, IntensityTarget intensityTarget)
         => new(type, duration, intensityTarget);
+    
+    public static SimpleStep Create(StepType type, Duration duration, (TimeSpan min, TimeSpan max) paceRange)
+        => new(type, duration, IntensityTarget.Pace(paceRange.min, paceRange.max));
 
     public static SimpleStep CreateWithKilometers(StepType type, decimal distance, IntensityTarget intensityTarget)
         => new(type, Duration.ForKilometers(distance), intensityTarget);
-
-    public static SimpleStep CreateWithPaceRange(
-        StepType type,
-        Duration duration,
-        TimeSpan paceMin,
-        TimeSpan paceMax)
-        => new(type, duration, IntensityTarget.Pace(paceMin, paceMax));
+    
+    public static SimpleStep CreateWithKilometers(StepType type, decimal distance, (TimeSpan min, TimeSpan max) paceRange)
+        => new(type, Duration.ForKilometers(distance), IntensityTarget.Pace(paceRange.min, paceRange.max));
 
     public static SimpleStep CreateWithNoTarget(StepType type, Duration duration)
         => new(type, duration, IntensityTarget.None());
+    
+    public static SimpleStep CreateWithNoTarget(StepType type, decimal distance)
+        => new(type, Duration.ForKilometers(distance), IntensityTarget.None());
 
     // Implementation details for calculated properties
     private Distance CalculateEstimatedDistance()
