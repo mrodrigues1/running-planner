@@ -9,13 +9,13 @@ public class TrainingPlanTests
     {
         // Arrange
         const decimal expectedFirstWeekTotalKilometers = 41.9m;
-        var sut = new HalHigdonMarathonIntermediate2();
+        
         
         // Act
-        var result = sut.GenerateDefaultTrainingPlan();
+        var sut = new HalHigdonMarathonIntermediate2();
         
         // Assert
-        var resultTrainingWeeks = result.TrainingWeeks.First();
+        var resultTrainingWeeks = sut.TrainingPlan.TrainingWeeks.First();
         Assert.Equal(expectedFirstWeekTotalKilometers, resultTrainingWeeks.TotalKilometerMileage, precision: 1);
     }
 }

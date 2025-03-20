@@ -1,5 +1,4 @@
-﻿using RunningPlanner.Core.Extensions.JackDaniels;
-using RunningPlanner.Core.Models;
+﻿using RunningPlanner.Core.Models;
 
 namespace RunningPlanner.Core.TrainingPlans.JackDaniels;
 
@@ -22,7 +21,8 @@ public class JackDanielsMarathonNovice
             {
                 GenerateWeek1(),
                 GenerateWeek2(),
-                GenerateWeek3()
+                GenerateWeek3(),
+                // Add remaining weeks here as needed
             });
     }
 
@@ -31,18 +31,34 @@ public class JackDanielsMarathonNovice
     /// </summary>
     private TrainingWeek GenerateWeek1()
     {
-        return TrainingWeek.TrainingWeekBuilder
-            .CreateBuilder()
-            .WithWeekNumber(1)
-            .WithTrainingPhase(TrainingPhase.Base)
-            .WithMonday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionA()) // First workout of the week
-            .WithTuesday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionB()) // Optional repeat of A
-            .WithWednesday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionC())
-            .WithThursday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionD()) // Optional repeat of C
-            .WithFriday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionE()) // Last workout of the week
-            .WithSaturday(WorkoutExtensions.CreateRestWorkout())
-            .WithSunday(WorkoutExtensions.CreateRestWorkout())
-            .Build();
+        return TrainingWeek.Create(
+            weekNumber: 1,
+            trainingPhase: TrainingPhase.Base,
+            monday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(15, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1))),
+            tuesday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(15, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1))),
+            wednesday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(9, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)),
+                new WalkRunInterval(3, TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2))),
+            thursday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(9, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)),
+                new WalkRunInterval(3, TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2))),
+            friday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(9, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)),
+                new WalkRunInterval(2, TimeSpan.FromMinutes(3), TimeSpan.FromMinutes(3))),
+            saturday: Workout.CreateRest(),
+            sunday: Workout.CreateRest());
     }
 
     /// <summary>
@@ -50,18 +66,34 @@ public class JackDanielsMarathonNovice
     /// </summary>
     private TrainingWeek GenerateWeek2()
     {
-        return TrainingWeek.TrainingWeekBuilder
-            .CreateBuilder()
-            .WithWeekNumber(2)
-            .WithTrainingPhase(TrainingPhase.Base)
-            .WithMonday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionA()) // Same sessions repeat in these early weeks
-            .WithTuesday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionB())
-            .WithWednesday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionC())
-            .WithThursday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionD())
-            .WithFriday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionE())
-            .WithSaturday(WorkoutExtensions.CreateRestWorkout())
-            .WithSunday(WorkoutExtensions.CreateRestWorkout())
-            .Build();
+        return TrainingWeek.Create(
+            weekNumber: 2,
+            trainingPhase: TrainingPhase.Base,
+            monday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(15, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1))),
+            tuesday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(15, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1))),
+            wednesday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(9, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)),
+                new WalkRunInterval(3, TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2))),
+            thursday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(9, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)),
+                new WalkRunInterval(3, TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2))),
+            friday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(9, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)),
+                new WalkRunInterval(2, TimeSpan.FromMinutes(3), TimeSpan.FromMinutes(3))),
+            saturday: Workout.CreateRest(),
+            sunday: Workout.CreateRest());
     }
 
     /// <summary>
@@ -69,17 +101,48 @@ public class JackDanielsMarathonNovice
     /// </summary>
     private TrainingWeek GenerateWeek3()
     {
-        return TrainingWeek.TrainingWeekBuilder
-            .CreateBuilder()
-            .WithWeekNumber(3)
-            .WithTrainingPhase(TrainingPhase.Base)
-            .WithMonday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionA()) // Same sessions repeat in these early weeks
-            .WithTuesday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionB())
-            .WithWednesday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionC())
-            .WithThursday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionD())
-            .WithFriday(JackDanielsMarathonNoviceSections18To16UntilRace.CreateSessionE())
-            .WithSaturday(WorkoutExtensions.CreateRestWorkout())
-            .WithSunday(WorkoutExtensions.CreateRestWorkout())
-            .Build();
+        return TrainingWeek.Create(
+            weekNumber: 3,
+            trainingPhase: TrainingPhase.Base,
+            monday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(15, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1))),
+            tuesday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(15, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1))),
+            wednesday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(9, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)),
+                new WalkRunInterval(3, TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2))),
+            thursday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(9, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)),
+                new WalkRunInterval(3, TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(2))),
+            friday: Workout.CreateRunWalkWorkout(
+                EasyPaceRange(),
+                WalkPaceRange(),
+                new WalkRunInterval(9, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1)),
+                new WalkRunInterval(2, TimeSpan.FromMinutes(3), TimeSpan.FromMinutes(3))),
+            saturday: Workout.CreateRest(),
+            sunday: Workout.CreateRest());
+    }
+
+    // Pace calculation methods for Novice runners
+    private static (TimeSpan min, TimeSpan max) EasyPaceRange()
+    {
+        // Define easy pace range for novice runners (per kilometer)
+        return (TimeSpan.FromMinutes(7).Add(TimeSpan.FromSeconds(30)),
+            TimeSpan.FromMinutes(9).Add(TimeSpan.FromSeconds(0)));
+    }
+
+    private static (TimeSpan min, TimeSpan max) WalkPaceRange()
+    {
+        // Define walking pace range for recovery segments (per kilometer)
+        return (TimeSpan.FromMinutes(9).Add(TimeSpan.FromSeconds(30)),
+            TimeSpan.FromMinutes(12).Add(TimeSpan.FromSeconds(0)));
     }
 }
