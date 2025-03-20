@@ -1,5 +1,4 @@
-﻿using RunningPlanner.Core.Extensions;
-using RunningPlanner.Core.Models;
+﻿using RunningPlanner.Core.Models;
 
 namespace RunningPlanner.Core.TrainingPlans.HalHigdon;
 
@@ -12,29 +11,30 @@ public class HalHigdonMarathonAdvanced2
         TrainingPlan = GenerateDefaultTrainingPlan();
     }
 
-    public TrainingPlan GenerateDefaultTrainingPlan()
+    private TrainingPlan GenerateDefaultTrainingPlan()
     {
-        return TrainingPlan.TrainingPlanBuilder
-            .CreateBuilder()
-            .WithTrainingWeek(GenerateWeek1())
-            .WithTrainingWeek(GenerateWeek2())
-            .WithTrainingWeek(GenerateWeek3())
-            .WithTrainingWeek(GenerateWeek4())
-            .WithTrainingWeek(GenerateWeek5())
-            .WithTrainingWeek(GenerateWeek6())
-            .WithTrainingWeek(GenerateWeek7())
-            .WithTrainingWeek(GenerateWeek8())
-            .WithTrainingWeek(GenerateWeek9())
-            .WithTrainingWeek(GenerateWeek10())
-            .WithTrainingWeek(GenerateWeek11())
-            .WithTrainingWeek(GenerateWeek12())
-            .WithTrainingWeek(GenerateWeek13())
-            .WithTrainingWeek(GenerateWeek14())
-            .WithTrainingWeek(GenerateWeek15())
-            .WithTrainingWeek(GenerateWeek16())
-            .WithTrainingWeek(GenerateWeek17())
-            .WithTrainingWeek(GenerateWeek18())
-            .Build();
+        return TrainingPlan.Create(
+            new List<TrainingWeek>
+            {
+                GenerateWeek1(),
+                GenerateWeek2(),
+                GenerateWeek3(),
+                GenerateWeek4(),
+                GenerateWeek5(),
+                GenerateWeek6(),
+                GenerateWeek7(),
+                GenerateWeek8(),
+                GenerateWeek9(),
+                GenerateWeek10(),
+                GenerateWeek11(),
+                GenerateWeek12(),
+                GenerateWeek13(),
+                GenerateWeek14(),
+                GenerateWeek15(),
+                GenerateWeek16(),
+                GenerateWeek17(),
+                GenerateWeek18()
+            });
     }
 
     private TrainingWeek GenerateWeek1()

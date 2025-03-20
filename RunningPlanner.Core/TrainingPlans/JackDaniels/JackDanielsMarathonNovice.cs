@@ -1,5 +1,4 @@
-﻿using RunningPlanner.Core.Extensions;
-using RunningPlanner.Core.Extensions.JackDaniels;
+﻿using RunningPlanner.Core.Extensions.JackDaniels;
 using RunningPlanner.Core.Models;
 
 namespace RunningPlanner.Core.TrainingPlans.JackDaniels;
@@ -16,15 +15,15 @@ public class JackDanielsMarathonNovice
         TrainingPlan = GenerateDefaultTrainingPlan();
     }
 
-    public TrainingPlan GenerateDefaultTrainingPlan()
+    private TrainingPlan GenerateDefaultTrainingPlan()
     {
-        return TrainingPlan.TrainingPlanBuilder
-            .CreateBuilder()
-            .WithTrainingWeek(GenerateWeek1())
-            .WithTrainingWeek(GenerateWeek2())
-            .WithTrainingWeek(GenerateWeek3())
-            // Add remaining weeks here when implementing the full plan
-            .Build();
+        return TrainingPlan.Create(
+            new List<TrainingWeek>
+            {
+                GenerateWeek1(),
+                GenerateWeek2(),
+                GenerateWeek3()
+            });
     }
 
     /// <summary>
