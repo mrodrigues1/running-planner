@@ -5,10 +5,12 @@ namespace RunningPlanner.Core.TrainingPlans.HalHigdon;
 public class HalHigdonMarathonNovice2
 {
     public TrainingPlan TrainingPlan { get; private set; }
+    public TrainingPlanAnalyzer TrainingPlanAnalyzer { get; private set; }
 
     public HalHigdonMarathonNovice2()
     {
         TrainingPlan = GenerateDefaultTrainingPlan();
+        TrainingPlanAnalyzer = new TrainingPlanAnalyzer(TrainingPlan);
     }
 
     private TrainingPlan GenerateDefaultTrainingPlan()
