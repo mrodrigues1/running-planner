@@ -2,20 +2,76 @@
 
 namespace RunningPlanner.Core.Models;
 
-public class Workout
+/// <summary>
+/// Represents a workout consisting of one or more steps.
+/// </summary>
+public record Workout
 {
-    private Workout()
-    {
-    }
+    /// <summary>
+    /// Gets the type of workout.
+    /// </summary>
+    public WorkoutType Type { get; }
 
-    public WorkoutType Type { get; private set; }
-    public List<Step> Steps { get; private set; }
+    /// <summary>
+    /// Gets the steps that make up this workout.
+    /// </summary>
+    public IReadOnlyList<Step> Steps { get; }
+
+    /// <summary>
+    /// Gets the name of the workout.
+    /// </summary>
     public string Name => BuildWorkoutName();
+
+    /// <summary>
+    /// Gets the total time for the workout.
+    /// </summary>
     public TimeSpan TotalTime => CalculateTotalTime();
+
+    /// <summary>
+    /// Gets the estimated time for the workout.
+    /// </summary>
     public TimeSpan EstimatedTime => CalculateEstimatedTime();
+
+    /// <summary>
+    /// Gets the total distance for the workout.
+    /// </summary>
     public Distance TotalDistance => CalculateTotalDistance();
+
+    /// <summary>
+    /// Gets the estimated distance for the workout.
+    /// </summary>
     public Distance EstimatedDistance => CalculateEstimatedDistance();
 
+    private Workout(WorkoutType type, IEnumerable<Step> steps)
+    {
+        Type = type;
+
+        if (Type is WorkoutType.Rest)
+        {
+            Steps = new List<Step>().AsReadOnly();
+
+            return;
+        }
+
+        var stepsList = steps?.ToList() ?? [];
+
+        if (stepsList.Count < 1)
+        {
+            throw new ArgumentException("Workout must contain at least one step.");
+        }
+
+        // Ensure no null steps
+        if (stepsList.Any(step => step == null))
+        {
+            throw new ArgumentNullException(nameof(steps), "Steps collection cannot contain null elements.");
+        }
+
+        Steps = stepsList.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Builds the workout name based on its type and contents.
+    /// </summary>
     private string BuildWorkoutName()
     {
         if (Type is WorkoutType.Rest)
@@ -44,6 +100,9 @@ public class Workout
         return string.Join(" - ", workoutName);
     }
 
+    /// <summary>
+    /// Calculates the total time for the workout.
+    /// </summary>
     private TimeSpan CalculateTotalTime()
     {
         var totalTicks = Steps
@@ -56,6 +115,9 @@ public class Workout
         return new TimeSpan(totalTicks);
     }
 
+    /// <summary>
+    /// Calculates the estimated time for the workout.
+    /// </summary>
     private TimeSpan CalculateEstimatedTime()
     {
         var totalEstimatedTicks = Steps
@@ -68,6 +130,9 @@ public class Workout
         return new TimeSpan(totalEstimatedTicks);
     }
 
+    /// <summary>
+    /// Calculates the total distance for the workout.
+    /// </summary>
     private Distance CalculateTotalDistance()
     {
         var distance = Steps
@@ -80,6 +145,9 @@ public class Workout
         return Distance.Kilometers(Math.Round(distance, 1, MidpointRounding.AwayFromZero));
     }
 
+    /// <summary>
+    /// Calculates the estimated distance for the workout.
+    /// </summary>
     private Distance CalculateEstimatedDistance()
     {
         var estimatedDistance = Steps
@@ -92,249 +160,556 @@ public class Workout
         return Distance.Kilometers(estimatedDistance);
     }
 
+    /// <summary>
+    /// Creates a standard workout with the specified type and steps.
+    /// </summary>
+    public static Workout Create(WorkoutType type, IEnumerable<Step> steps) =>
+        new(type, steps);
 
-    public class WorkoutBuilder
+    /// <summary>
+    /// Creates a standard workout with the specified type and steps.
+    /// </summary>
+    public static Workout Create(WorkoutType type, params Step[] steps) =>
+        new(type, steps);
+
+    /// <summary>
+    /// Creates an easy run workout.
+    /// </summary>
+    public static Workout CreateEasyRun(decimal distance, (TimeSpan min, TimeSpan max) pace)
     {
-        private readonly Workout _workout;
+        var step = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.Pace(pace.min, pace.max)));
 
-        private WorkoutBuilder()
-        {
-            _workout = new Workout
-            {
-                Steps = []
-            };
-        }
+        return new Workout(WorkoutType.EasyRun, [step]);
+    }
 
-        public WorkoutBuilder WithType(WorkoutType type)
-        {
-            _workout.Type = type;
+    /// <summary>
+    /// Creates a medium run workout.
+    /// </summary>
+    public static Workout CreateMediumRun(decimal distance, (TimeSpan min, TimeSpan max) pace)
+    {
+        var step = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.Pace(pace.min, pace.max)));
 
-            return this;
-        }
+        return new Workout(WorkoutType.MediumRun, [step]);
+    }
 
-        public WorkoutBuilder WithStep(Step step)
-        {
-            _workout.Steps.Add(step);
+    /// <summary>
+    /// Creates a long run workout.
+    /// </summary>
+    public static Workout CreateLongRun(decimal distance, (TimeSpan min, TimeSpan max) pace)
+    {
+        var step = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.Pace(pace.min, pace.max)));
 
-            return this;
-        }
+        return new Workout(WorkoutType.LongRun, [step]);
+    }
 
-        public Workout Build()
-        {
-            if (_workout.Type is WorkoutType.Invalid || !Enum.IsDefined(_workout.Type))
-            {
-                throw new ArgumentException("Invalid workout type.");
-            }
+    /// <summary>
+    /// Creates a race pace workout.
+    /// </summary>
+    public static Workout CreateRacePace(decimal distance, (TimeSpan min, TimeSpan max) pace)
+    {
+        var step = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.Pace(pace.min, pace.max)));
 
-            if (_workout.Type is not WorkoutType.Rest && _workout.Steps is null)
-            {
-                throw new ArgumentException("Steps cannot be null.");
-            }
+        return new Workout(WorkoutType.RacePace, [step]);
+    }
 
-            if (_workout.Type is not WorkoutType.Rest && _workout.Steps.Count < 1)
-            {
-                throw new ArgumentException("Workout must contain at least one step.");
-            }
+    /// <summary>
+    /// Creates a rest workout.
+    /// </summary>
+    public static Workout CreateRest()
+    {
+        return new Workout(WorkoutType.Rest, []);
+    }
 
-            if (string.IsNullOrEmpty(_workout.Name))
-            {
-                throw new ArgumentException("Name cannot be null or empty.");
-            }
+    /// <summary>
+    /// Creates a race workout.
+    /// </summary>
+    public static Workout CreateRace(decimal distance)
+    {
+        var step = Step.FromSimpleStep(SimpleStep.CreateWithNoTarget(StepType.Run, Duration.ForKilometers(distance)));
 
-            return _workout;
-        }
+        return new Workout(WorkoutType.Race, [step]);
+    }
 
-        public Workout BuildSimpleWorkout()
-        {
-            if (_workout.Type is WorkoutType.Invalid || !Enum.IsDefined(_workout.Type))
-            {
-                throw new ArgumentException("Invalid workout type.");
-            }
-
-            if (_workout.Type is WorkoutType.Rest)
-            {
-                throw new ArgumentException("Workout type must not be rest.");
-            }
-
-            if (_workout.Steps is null)
-            {
-                throw new ArgumentException("Steps cannot be null.");
-            }
-
-            if (_workout.Steps.Count is not 1)
-            {
-                throw new ArgumentException("Workout must contain exactly one step.");
-            }
-
-            if (string.IsNullOrEmpty(_workout.Name))
-            {
-                throw new ArgumentException("Name cannot be null or empty.");
-            }
-
-            return _workout;
-        }
-
-        public Workout BuildRepeatWorkout()
-        {
-            if (_workout.Type is WorkoutType.Invalid || !Enum.IsDefined(_workout.Type))
-            {
-                throw new ArgumentException("Invalid workout type.");
-            }
-
-            if (_workout.Type is WorkoutType.Rest)
-            {
-                throw new ArgumentException("Workout type must not be rest.");
-            }
-
-            if (_workout.Steps is null)
-            {
-                throw new ArgumentException("Steps cannot be null.");
-            }
-
-            if (_workout.Steps.Count < 1)
-            {
-                throw new ArgumentException("Workout must contain at least one step.");
-            }
-
-            if (string.IsNullOrEmpty(_workout.Name))
-            {
-                throw new ArgumentException("Name cannot be null or empty.");
-            }
-
-            return _workout;
-        }
-
-        public Workout BuildRestWorkout()
-        {
-            if (_workout.Type is WorkoutType.Invalid || !Enum.IsDefined(_workout.Type))
-            {
-                throw new ArgumentException("Invalid workout type.");
-            }
-
-            if (_workout.Type is not WorkoutType.Rest)
-            {
-                throw new ArgumentException("Workout type must be rest.");
-            }
-
-            if (_workout.Steps.Count > 0)
-            {
-                throw new ArgumentException("Workout must not contain any steps.");
-            }
-
-            if (string.IsNullOrEmpty(_workout.Name))
-            {
-                throw new ArgumentException("Name cannot be null or empty.");
-            }
-
-            return _workout;
-        }
-
-        public WorkoutBuilder WithSimpleRunStep(decimal distance, (TimeSpan min, TimeSpan max) pace)
-        {
-            var simpleStep = SimpleStep.CreateWithKilometers(
+    /// <summary>
+    /// Creates a race workout.
+    /// </summary>
+    public static Workout CreateRace(decimal distance, (TimeSpan min, TimeSpan max) paceRange)
+    {
+        var step = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(
                 StepType.Run,
                 distance,
-                IntensityTarget.Pace(pace.min, pace.max));
+                IntensityTarget.Pace(paceRange.min, paceRange.max)));
 
-            var step = Step.FromSimpleStep(simpleStep);
+        return new Workout(WorkoutType.Race, [step]);
+    }
 
-            WithStep(step);
+    /// <summary>
+    /// Creates a hill workout consisting of repeats, warmup, and cooldown based on the specified parameters.
+    /// </summary>
+    /// <param name="repeats">Number of hill repeats in the workout.</param>
+    /// <param name="totalDistance">Total workout distance in kilometers.</param>
+    /// <param name="easyPaceRange">The pace range for the easy running segments during warmup, cooldown, and additional distance.</param>
+    /// <param name="hillPaceRange">The pace range for the uphill portions of the hill repeats.</param>
+    /// <param name="recoveryPaceRange">The pace range for the recovery portions (downhill) of the hill repeats.</param>
+    /// <param name="warmupDistance">Distance for the warmup in kilometers (default is 2.0).</param>
+    /// <param name="cooldownDistance">Distance for the cooldown in kilometers (default is 2.0).</param>
+    /// <returns>A hill workout object containing the specified warmup, hill repeats, cooldown, and any necessary additional distance.</returns>
+    public static Workout CreateHillRepeatWorkout(
+        int repeats,
+        decimal totalDistance,
+        (TimeSpan min, TimeSpan max) easyPaceRange,
+        (TimeSpan min, TimeSpan max) hillPaceRange,
+        (TimeSpan min, TimeSpan max) recoveryPaceRange,
+        decimal warmupDistance = 2.0m,
+        decimal cooldownDistance = 2.0m)
+    {
+        // For hill workouts:
+        // - Warmup as specified (default 2km)
+        // - Repeats
+        // - Cooldown as specified (default 2km)
+        decimal remainingDistance = totalDistance - (warmupDistance + cooldownDistance);
 
-            return this;
+        // Each hill repeat is approximately:
+        decimal hillUpDistance = 0.4m; // ~400m uphill
+        decimal hillDownDistance = 0.4m; // ~400m recovery (jog down)
+        decimal totalRepeatDistance = repeats * (hillUpDistance + hillDownDistance);
+
+        // If there's additional distance to cover, we'll add it as an easy run
+        decimal additionalEasyDistance = Math.Max(0, remainingDistance - totalRepeatDistance);
+
+        var warmUpStep = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(
+                StepType.WarmUp,
+                warmupDistance,
+                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+
+        var steps = new List<SimpleStep>();
+
+        for (var i = 0; i < repeats; i++)
+        {
+            var runStep = SimpleStep
+                .CreateWithKilometers(
+                    StepType.Run,
+                    hillUpDistance,
+                    IntensityTarget.Pace(hillPaceRange.min, hillPaceRange.max));
+
+            var restStep = SimpleStep
+                .CreateWithKilometers(
+                    StepType.Recover,
+                    hillDownDistance,
+                    IntensityTarget.Pace(recoveryPaceRange.min, recoveryPaceRange.max));
+
+            steps.Add(runStep);
+            steps.Add(restStep);
         }
 
-        public WorkoutBuilder WithSimpleStep(
-            StepType stepType,
-            decimal distance,
-            (TimeSpan min, TimeSpan max) pace)
+        var totalRepeats = repeats * 2;
+
+        var repeatStep = Step.FromRepeat(Repeat.Create(totalRepeats, steps));
+
+        var coolDownStep = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(
+                StepType.CoolDown,
+                cooldownDistance + additionalEasyDistance,
+                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+
+        return
+            new Workout(
+                WorkoutType.HillRepeat,
+                new List<Step>
+                {
+                    warmUpStep,
+                    repeatStep,
+                    coolDownStep
+                });
+    }
+
+    /// <summary>
+    /// Creates an interval workout with warm-up, repeated interval and recovery steps,
+    /// and a cool-down step, ensuring the total distance matches the specified value.
+    /// </summary>
+    /// <param name="repeats">The number of interval and recovery repetitions.</param>
+    /// <param name="meters">The distance in meters for each interval.</param>
+    /// <param name="recoveryMeters">The distance in meters for each recovery period.</param>
+    /// <param name="totalDistance">The total distance for the workout, in kilometers.</param>
+    /// <param name="easyPaceRange">The pace range for easy intensity during warm-up and cool-down.</param>
+    /// <param name="intervalPaceRange">The pace range for the interval runs.</param>
+    /// <param name="recoveryPaceRange">The pace range for the recovery runs.</param>
+    /// <param name="warmupDistance">The distance for the warm-up step, in kilometers. Defaults to 2.0 km.</param>
+    /// <param name="cooldownDistance">The distance for the cool-down step, in kilometers. Defaults to 2.0 km.</param>
+    /// <returns>A <see cref="Workout"/> object representing the interval workout.</returns>
+    public static Workout CreateInterval(
+        int repeats,
+        int meters,
+        int recoveryMeters,
+        decimal totalDistance,
+        (TimeSpan min, TimeSpan max) easyPaceRange,
+        (TimeSpan min, TimeSpan max) intervalPaceRange,
+        (TimeSpan min, TimeSpan max) recoveryPaceRange,
+        decimal warmupDistance = 2.0m,
+        decimal cooldownDistance = 2.0m,
+        decimal? restBeforeStartIntervalDistance = null)
+    {
+        // For interval workouts:
+        // - Warmup as specified (default 2km)
+        // - Interval repeats (with recovery)
+        // - Cooldown as specified (default 2km)
+
+        // Convert meters to kilometers for intervals
+        decimal intervalDistance = meters / 1000.0m;
+        decimal recoveryDistance = recoveryMeters / 1000.0m;
+
+        // Total distance for intervals and recovery
+        decimal intervalTotalDistance = repeats * (intervalDistance + recoveryDistance);
+
+        // Additional easy distance if needed to match total
+        decimal remainingDistance = totalDistance -
+                                    (warmupDistance +
+                                     intervalTotalDistance +
+                                     cooldownDistance +
+                                     (restBeforeStartIntervalDistance ?? 0.0m));
+        decimal additionalEasyDistance = Math.Max(0, remainingDistance);
+
+        var warmUpStep = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(
+                StepType.WarmUp,
+                warmupDistance,
+                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+
+        var steps = new List<SimpleStep>();
+
+        for (var i = 0; i < repeats; i++)
         {
-            var simpleStep = SimpleStep.CreateWithKilometers(
-                stepType,
+            var runStep = SimpleStep
+                .CreateWithKilometers(
+                    StepType.Run,
+                    intervalDistance,
+                    IntensityTarget.Pace(intervalPaceRange.min, intervalPaceRange.max));
+
+            var restStep = SimpleStep
+                .CreateWithKilometers(
+                    StepType.Recover,
+                    recoveryDistance,
+                    IntensityTarget.Pace(recoveryPaceRange.min, recoveryPaceRange.max));
+
+            steps.Add(runStep);
+            steps.Add(restStep);
+        }
+
+        var totalRepeats = repeats * 2;
+
+        var repeatStep = Step.FromRepeat(Repeat.Create(totalRepeats, steps));
+
+        var coolDownStep = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(
+                StepType.CoolDown,
+                cooldownDistance + additionalEasyDistance,
+                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+
+        var workoutSteps = new List<Step>();
+        workoutSteps.Add(warmUpStep);
+
+        if (restBeforeStartIntervalDistance.HasValue)
+        {
+            var restStep = Step.FromSimpleStep(
+                SimpleStep.CreateWithKilometers(
+                    StepType.Rest,
+                    restBeforeStartIntervalDistance.Value,
+                    IntensityTarget.Pace(recoveryPaceRange.min, recoveryPaceRange.max)));
+            workoutSteps.Add(restStep);
+        }
+
+        workoutSteps.Add(repeatStep);
+        workoutSteps.Add(coolDownStep);
+
+        return
+            new Workout(
+                WorkoutType.Intervals,
+                workoutSteps);
+    }
+
+    /// <summary>
+    /// Creates a tempo workout consisting of a warmup, a tempo section, a cooldown, and any necessary additional easy running distance based on the specified parameters.
+    /// </summary>
+    /// <param name="tempoMinutes">The duration of the tempo section in minutes.</param>
+    /// <param name="totalDistance">The total distance of the workout in kilometers.</param>
+    /// <param name="easyPaceRange">The pace range for the easy running segments during warmup, cooldown, and additional distance.</param>
+    /// <param name="tempoPaceRange">The pace range for the tempo section of the workout.</param>
+    /// <param name="warmupDistance">The distance for the warmup in kilometers (default is 2.0).</param>
+    /// <param name="cooldownDistance">The distance for the cooldown in kilometers (default is 2.0).</param>
+    /// <returns>A tempo workout object containing the specified warmup, tempo section, cooldown, and any necessary additional easy running distance.</returns>
+    public static Workout CreateTempo(
+        int tempoMinutes,
+        decimal totalDistance,
+        (TimeSpan min, TimeSpan max) easyPaceRange,
+        (TimeSpan min, TimeSpan max) tempoPaceRange,
+        decimal warmupDistance = 2.0m,
+        decimal cooldownDistance = 2.0m)
+    {
+        // For tempo workouts:
+        // - Warmup as specified (default 2km)
+        // - Tempo section at faster pace (using the minutes specified)
+        // - Cooldown as specified (default 2km)
+
+        var tempoDistance = CalculateDistanceBasedOnDuration(TimeSpan.FromMinutes(tempoMinutes), tempoPaceRange);
+
+        // Additional easy distance if needed to match total
+        decimal remainingDistance = totalDistance - (warmupDistance + tempoDistance + cooldownDistance);
+        decimal additionalEasyDistance = Math.Max(0, remainingDistance);
+
+        var warmUpStep = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(
+                StepType.WarmUp,
+                warmupDistance,
+                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+
+        var tempoStep = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(
+                StepType.Run,
+                tempoDistance,
+                IntensityTarget.Pace(tempoPaceRange.min, tempoPaceRange.max)));
+
+        var coolDown = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(
+                StepType.CoolDown,
+                cooldownDistance + additionalEasyDistance,
+                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+
+        return Create(
+            WorkoutType.TempoRun,
+            new List<Step>
+            {
+                warmUpStep,
+                tempoStep,
+                coolDown
+            });
+    }
+
+    /// <summary>
+    /// Creates a stride workout that incorporates strides with defined pace ranges and recovery segments,
+    /// along with warm-up and cool-down phases.
+    /// </summary>
+    /// <param name="distance">The total distance of the workout in kilometers.</param>
+    /// <param name="strideCount">The number of strides to include in the workout.</param>
+    /// <param name="easyPaceRange">The pace range for the easy run sections of the workout.</param>
+    /// <param name="strideRange">The pace range for the strides.</param>
+    /// <param name="recoveryPaceRange">The pace range for the recovery sections between strides.</param>
+    /// <returns>A stride workout object with strides integrated into the workout flow.</returns>
+    public static Workout CreateStrideWorkout(
+        decimal distance,
+        int strideCount,
+        (TimeSpan min, TimeSpan max) easyPaceRange,
+        (TimeSpan min, TimeSpan max) strideRange,
+        (TimeSpan min, TimeSpan max) recoveryPaceRange)
+    {
+        var runStep = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(
+                StepType.Run,
                 distance,
-                IntensityTarget.Pace(pace.min, pace.max));
+                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
 
-            var step = Step.FromSimpleStep(simpleStep);
+        var steps = new List<SimpleStep>();
 
-            WithStep(step);
+        for (var i = 0; i < strideCount; i++)
+        {
+            var runSimpleStep = SimpleStep
+                .CreateWithKilometers(
+                    StepType.Run,
+                    0.1m,
+                    IntensityTarget.Pace(strideRange.min, strideRange.max));
 
-            return this;
+            var restSimpleStep = SimpleStep
+                .CreateWithKilometers(
+                    StepType.Recover,
+                    0.1m,
+                    IntensityTarget.Pace(recoveryPaceRange.min, recoveryPaceRange.max));
+
+            steps.Add(runSimpleStep);
+            steps.Add(restSimpleStep);
         }
 
-        public WorkoutBuilder WithRaceStep(decimal distance)
+        var totalRepeats = strideCount * 2;
+
+        var repeatStep = Step.FromRepeat(Repeat.Create(totalRepeats, steps));
+
+        return Create(
+            WorkoutType.EasyRunWithStrides,
+            new List<Step>
+            {
+                runStep,
+                repeatStep
+            });
+    }
+
+    /// <summary>
+    /// Creates a threshold workout with specified distances, paces, and warmup/cooldown segments.
+    /// </summary>
+    /// <param name="thresholdDistance">The distance for the threshold segment.</param>
+    /// <param name="totalDistance">The total distance of the workout, including warmup, threshold, and cooldown segments.</param>
+    /// <param name="easyPaceRange">The range of pace for the warmup and cooldown segments.</param>
+    /// <param name="thresholdPaceRange">The range of pace for the threshold segment.</param>
+    /// <returns>A threshold workout object with the configured steps and type.</returns>
+    public static Workout CreateThresholdWorkout(
+        decimal thresholdDistance,
+        decimal totalDistance,
+        (TimeSpan min, TimeSpan max) easyPaceRange,
+        (TimeSpan min, TimeSpan max) thresholdPaceRange,
+        decimal warmupDistance = 2.0m,
+        decimal cooldownDistance = 2.0m)
+    {
+        // For tempo workouts:
+        // - Warmup as specified (default 2km)
+        // - Tempo section at faster pace (using the distance specified)
+        // - Cooldown as specified (default 2km)
+
+
+        // Additional easy distance if needed to match total
+        decimal remainingDistance = totalDistance - (warmupDistance + thresholdDistance + cooldownDistance);
+        decimal additionalEasyDistance = Math.Max(0, remainingDistance);
+
+        var warmUpStep = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(
+                StepType.WarmUp,
+                warmupDistance,
+                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+
+        var thresholdStep = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(
+                StepType.Run,
+                warmupDistance,
+                IntensityTarget.Pace(thresholdPaceRange.min, thresholdPaceRange.max)));
+
+        var coolDown = Step.FromSimpleStep(
+            SimpleStep.CreateWithKilometers(
+                StepType.CoolDown,
+                cooldownDistance + additionalEasyDistance,
+                IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max)));
+
+        return Create(
+            WorkoutType.Threshold,
+            new List<Step>
+            {
+                warmUpStep,
+                thresholdStep,
+                coolDown
+            });
+    }
+
+    /// <summary>
+    /// Creates a walk/run workout with specified intervals of running and walking.
+    /// Each interval specifies the number of repetitions, run duration, and walk duration.
+    /// The run and walk durations are paired with their respective pace ranges to calculate distances.
+    /// </summary>
+    /// <param name="runPaceRange">The minimum and maximum paces for the running segments.</param>
+    /// <param name="walkPaceRange">The minimum and maximum paces for the walking segments.</param>
+    /// <param name="runWalkIntervals">A list of tuples representing intervals for the workout, where each tuple contains
+    ///     the number of repetitions, run duration, and walk duration.</param>
+    /// <returns>A workout object of type WalkRun configured with the specified intervals, paces, and steps.</returns>
+    public static Workout CreateRunWalkWorkout(
+        (TimeSpan min, TimeSpan max) runPaceRange,
+        (TimeSpan min, TimeSpan max) walkPaceRange,
+        params WalkRunInterval[] runWalkIntervals)
+    {
+        var steps = new List<Step>();
+
+        foreach (var runWalkInterval in runWalkIntervals)
         {
-            var simpleStep = SimpleStep.CreateWithKilometers(StepType.Run, distance, IntensityTarget.None());
+            var runDistance = CalculateDistanceBasedOnDuration(runWalkInterval.RunDuration, runPaceRange);
+            var walkDistance = CalculateDistanceBasedOnDuration(runWalkInterval.WalkDuration, walkPaceRange);
 
-            var step = Step.FromSimpleStep(simpleStep);
+            var simpleSteps = new List<SimpleStep>();
 
-            WithStep(step);
-
-            return this;
-        }
-
-        public WorkoutBuilder WithRepeatStep(
-            int repeats,
-            decimal repeatDistance,
-            decimal restDistance,
-            (TimeSpan min, TimeSpan max) intervalPace,
-            (TimeSpan min, TimeSpan max) restPace)
-        {
-            var steps = new List<SimpleStep>();
-
-            for (var i = 0; i < repeats; i++)
+            for (int i = 0; i < runWalkInterval.RepeatCount; i++)
             {
                 var runStep = SimpleStep
                     .CreateWithKilometers(
                         StepType.Run,
-                        repeatDistance,
-                        IntensityTarget.Pace(intervalPace.min, intervalPace.max));
+                        runDistance,
+                        IntensityTarget.Pace(runPaceRange.min, runPaceRange.max));
 
-                var restStep = SimpleStep
+                var walkStep = SimpleStep
                     .CreateWithKilometers(
-                        StepType.Recover,
-                        restDistance,
-                        IntensityTarget.Pace(restPace.min, restPace.max));
+                        StepType.Walk,
+                        walkDistance,
+                        IntensityTarget.Pace(walkPaceRange.min, walkPaceRange.max));
 
-                steps.Add(runStep);
-                steps.Add(restStep);
+                simpleSteps.Add(runStep);
+                simpleSteps.Add(walkStep);
             }
 
-            var totalRepeats = repeats * 2;
+            // Create a repeat for the walk/run intervals
+            var totalRepeats = runWalkInterval.RepeatCount * 2; // *2 because each interval has 2 steps (walk + run)
 
-            var repeat = Repeat.Create(totalRepeats, steps);
-
-            var step = Step.FromRepeat(repeat);
-
-            WithStep(step);
-
-            return this;
+            steps.Add(Step.FromRepeat(Repeat.Create(totalRepeats, simpleSteps)));
         }
 
-        public Workout BuildRaceWorkout()
+        // If there's a continuous easy section (like the 15:00-20:00 E in the second workout),
+        // add it as a separate step
+        if (runWalkIntervals.Any(i => i.ContinuousEasyDuration > TimeSpan.Zero))
         {
-            if (_workout.Type is WorkoutType.Invalid || !Enum.IsDefined(_workout.Type))
+            foreach (var interval in runWalkIntervals)
             {
-                throw new ArgumentException("Invalid workout type.");
-            }
+                var continuousEasyDistance = CalculateDistanceBasedOnDuration(
+                    interval.ContinuousEasyDuration,
+                    runPaceRange);
 
-            if (_workout.Type is not WorkoutType.Race)
-            {
-                throw new ArgumentException("Workout type must be race.");
-            }
+                var continuousEasyStep = Step.FromSimpleStep(
+                    SimpleStep
+                        .CreateWithKilometers(
+                            StepType.Run,
+                            continuousEasyDistance,
+                            IntensityTarget.Pace(runPaceRange.min, runPaceRange.max)));
 
-            if (_workout.Steps.Count is not 1)
-            {
-                throw new ArgumentException("Workout must contain one step.");
+                steps.Add(continuousEasyStep);
             }
-
-            if (string.IsNullOrEmpty(_workout.Name))
-            {
-                throw new ArgumentException("Name cannot be null or empty.");
-            }
-
-            return _workout;
         }
 
-        public static WorkoutBuilder CreateBuilder() => new();
+        // If there's a final walk section (like the 6:00 W in the second workout)
+        if (runWalkIntervals.Any(i => i.FinalWalkDuration > TimeSpan.Zero))
+        {
+            foreach (var interval in runWalkIntervals)
+            {
+                var finalWalkDistance = CalculateDistanceBasedOnDuration(
+                    interval.FinalWalkDuration,
+                    walkPaceRange);
+
+                var finalWalkStep = Step.FromSimpleStep(
+                    SimpleStep
+                        .CreateWithKilometers(
+                            StepType.Walk,
+                            finalWalkDistance,
+                            IntensityTarget.Pace(walkPaceRange.min, walkPaceRange.max)));
+
+                steps.Add(finalWalkStep);
+            }
+        }
+
+        return Create(WorkoutType.WalkRun, steps);
+    }
+
+    /// <summary>
+    /// Calculates the distance covered based on the duration and specified pace range.
+    /// </summary>
+    /// <param name="duration">The time duration for which the distance is to be calculated.</param>
+    /// <param name="paceRange">The pace range (minimum and maximum pace) used for the calculation.</param>
+    /// <returns>The calculated distance based on the given duration and pace range.</returns>
+    private static decimal CalculateDistanceBasedOnDuration(TimeSpan duration, (TimeSpan min, TimeSpan max) paceRange)
+    {
+        // Calculate average tempo pace in ticks per km, then convert to minutes
+        decimal avgTempoTicksPerKm = (decimal) (paceRange.min.Ticks + paceRange.max.Ticks) / 2;
+        decimal avgMinutesPerKm = avgTempoTicksPerKm / (decimal) TimeSpan.TicksPerMinute;
+
+        decimal minutes = (decimal) duration.Ticks / TimeSpan.TicksPerMinute;
+
+        // Calculate the distance covered during the tempo portion
+        decimal distance = minutes / avgMinutesPerKm;
+
+        return distance;
     }
 }
 
@@ -344,6 +719,7 @@ public enum WorkoutType
     Rest,
     WalkRun,
     EasyRun,
+    EasyRunWithStrides,
     MediumRun,
     Repetition,
     Intervals,

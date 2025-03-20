@@ -1,5 +1,4 @@
-﻿using RunningPlanner.Core.Extensions;
-using RunningPlanner.Core.Models;
+﻿using RunningPlanner.Core.Models;
 
 namespace RunningPlanner.Tests;
 
@@ -11,26 +10,23 @@ public class WorkoutTests
         // Arrange
         var easyPace = (TimeSpan.FromMinutes(6), TimeSpan.FromMinutes(6).Add(TimeSpan.FromSeconds(30)));
 
+        var intervalPace = (TimeSpan.FromMinutes(5).Add(TimeSpan.FromSeconds(15)),
+            TimeSpan.FromMinutes(5).Add(TimeSpan.FromSeconds(35)));
+
         var restPace = (TimeSpan.FromMinutes(7), TimeSpan.FromMinutes(10));
 
-        var workoutBuilder = Workout.WorkoutBuilder
-            .CreateBuilder()
-            .WithType(WorkoutType.Intervals)
-            .WithSimpleStep(StepType.WarmUp, 2m, easyPace)
-            .WithSimpleStep(StepType.Rest, 0.5m, restPace)
-            .WithRepeatStep(
-                3,
-                1m,
-                0.4m,
-                (
-                    TimeSpan.FromMinutes(5).Add(TimeSpan.FromSeconds(15)),
-                    TimeSpan.FromMinutes(5).Add(TimeSpan.FromSeconds(35))),
-                restPace)
-            .WithSimpleStep(StepType.CoolDown, 2m, easyPace);
-
-
         // Act
-        var workout = workoutBuilder.Build();
+        var workout = Workout.CreateInterval(
+            3,
+            1000,
+            400,
+            8.7m,
+            easyPace,
+            intervalPace,
+            restPace,
+            2m,
+            2m,
+            0.5m);
 
         // Assert
         Assert.Equal(8.7m, workout.TotalDistance.DistanceValue);
@@ -45,7 +41,7 @@ public class WorkoutTests
         var restPace = (TimeSpan.FromMinutes(7), TimeSpan.FromMinutes(10));
 
         // Act
-        var workout = WorkoutExtensions
+        var workout = Workout
             .CreateRunWalkWorkout(
                 easyPace,
                 restPace,
@@ -64,7 +60,7 @@ public class WorkoutTests
         var restPace = (TimeSpan.FromMinutes(7), TimeSpan.FromMinutes(10));
 
         // Act
-        var workout = WorkoutExtensions
+        var workout = Workout
             .CreateRunWalkWorkout(
                 easyPace,
                 restPace,

@@ -1,194 +1,70 @@
 ﻿namespace RunningPlanner.Core.Models;
 
-public class TrainingWeek
+public record TrainingWeek
 {
+    public int WeekNumber { get; init; }
+    public TrainingPhase TrainingPhase { get; init; }
+    public Workout? Monday { get; init; }
+    public Workout? Tuesday { get; init; }
+    public Workout? Wednesday { get; init; }
+    public Workout? Thursday { get; init; }
+    public Workout? Friday { get; init; }
+    public Workout? Saturday { get; init; }
+    public Workout? Sunday { get; init; }
+
+    // Computed properties
+    public decimal TotalKilometerMileage => CalculateTotalKilometerMileage();
+    public TimeSpan TotalEstimatedTime => CalculateTotalEstimatedTime();
+
+    // Collection of all workouts in the week
+    public IReadOnlyList<Workout> Workouts => new[]
+        {
+            Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+        }.Where(w => w != null)
+        .Cast<Workout>()
+        .ToList()
+        .AsReadOnly();
+
+    // Optional parameterless constructor
     private TrainingWeek()
     {
     }
 
-    public int WeekNumber { get; private set; }
-    public TrainingPhase TrainingPhase { get; private set; }
-    public Workout Monday { get; private set; }
-    public Workout Tuesday { get; private set; }
-    public Workout Wednesday { get; private set; }
-    public Workout Thursday { get; private set; }
-    public Workout Friday { get; private set; }
-    public Workout Saturday { get; private set; }
-    public Workout Sunday { get; private set; }
-
-    public decimal TotalKilometerMileage => CalculateTotalKilometerMileage();
-    public TimeSpan TotalEstimatedTime => CalculateTotalEstimatedTime();
-
-    public List<Workout> Workouts =>
-    [
-        Monday,
-        Tuesday,
-        Wednesday,
-        Thursday,
-        Friday,
-        Saturday,
-        Sunday
-    ];
+    // Factory method with named parameters for clarity
+    public static TrainingWeek Create(
+        int weekNumber,
+        TrainingPhase trainingPhase,
+        Workout? monday = null,
+        Workout? tuesday = null,
+        Workout? wednesday = null,
+        Workout? thursday = null,
+        Workout? friday = null,
+        Workout? saturday = null,
+        Workout? sunday = null)
+    {
+        return new TrainingWeek
+        {
+            WeekNumber = weekNumber,
+            TrainingPhase = trainingPhase,
+            Monday = monday,
+            Tuesday = tuesday,
+            Wednesday = wednesday,
+            Thursday = thursday,
+            Friday = friday,
+            Saturday = saturday,
+            Sunday = sunday
+        };
+    }
 
     private decimal CalculateTotalKilometerMileage()
     {
-        var workouts = new List<Workout>
-        {
-            Monday,
-            Tuesday,
-            Wednesday,
-            Thursday,
-            Friday,
-            Saturday,
-            Sunday
-        };
-        
-        var totalKilometers = workouts.Sum(x => x.TotalDistance.DistanceValue);
-
-        return Math.Round(totalKilometers, 1);
+        // Implement calculation logic using Workouts collection
+        return Workouts.Sum(w => w.TotalDistance.DistanceValue);
     }
-    
+
     private TimeSpan CalculateTotalEstimatedTime()
     {
-        var workouts = new List<Workout>
-        {
-            Monday,
-            Tuesday,
-            Wednesday,
-            Thursday,
-            Friday,
-            Saturday,
-            Sunday
-        };
-        
-        var totalEstimatedTimeTicks = workouts.Sum(x => x.EstimatedTime.Ticks);
-
-        return new TimeSpan(totalEstimatedTimeTicks);
-    }
-
-    public class TrainingWeekBuilder
-    {
-        private readonly TrainingWeek _trainingWeek;
-
-        private TrainingWeekBuilder()
-        {
-            _trainingWeek = new TrainingWeek();
-        }
-
-        public TrainingWeekBuilder WithWeekNumber(int weekNumber)
-        {
-            _trainingWeek.WeekNumber = weekNumber;
-
-            return this;
-        }
-
-        public TrainingWeekBuilder WithTrainingPhase(TrainingPhase trainingPhase)
-        {
-            _trainingWeek.TrainingPhase = trainingPhase;
-            
-            return this;
-        }
-
-        public TrainingWeekBuilder WithMonday(Workout monday)
-        {
-            _trainingWeek.Monday = monday;
-
-            return this;
-        }
-
-        public TrainingWeekBuilder WithTuesday(Workout tuesday)
-        {
-            _trainingWeek.Tuesday = tuesday;
-
-            return this;
-        }
-
-        public TrainingWeekBuilder WithWednesday(Workout wednesday)
-        {
-            _trainingWeek.Wednesday = wednesday;
-
-            return this;
-        }
-
-        public TrainingWeekBuilder WithThursday(Workout thursday)
-        {
-            _trainingWeek.Thursday = thursday;
-
-            return this;
-        }
-
-        public TrainingWeekBuilder WithFriday(Workout friday)
-        {
-            _trainingWeek.Friday = friday;
-
-            return this;
-        }
-
-        public TrainingWeekBuilder WithSaturday(Workout saturday)
-        {
-            _trainingWeek.Saturday = saturday;
-
-            return this;
-        }
-
-        public TrainingWeekBuilder WithSunday(Workout sunday)
-        {
-            _trainingWeek.Sunday = sunday;
-
-            return this;
-        }
-
-        public TrainingWeek Build()
-        {
-            if (_trainingWeek.WeekNumber < 1)
-            {
-                throw new ArgumentException("Week number cannot be less than 1.");
-            }
-
-            if (!Enum.IsDefined(_trainingWeek.TrainingPhase)
-                && _trainingWeek.TrainingPhase is TrainingPhase.Invalid)
-            {
-                throw new ArgumentException("Invalid training phase.");
-            }
-
-            if (_trainingWeek.Monday is null)
-            {
-                throw new ArgumentException("Monday cannot be null.");
-            }
-
-            if (_trainingWeek.Tuesday is null)
-            {
-                throw new ArgumentException("Tuesday cannot be null.");
-            }
-
-            if (_trainingWeek.Wednesday is null)
-            {
-                throw new ArgumentException("Wednesday cannot be null.");
-            }
-
-            if (_trainingWeek.Thursday is null)
-            {
-                throw new ArgumentException("Thursday cannot be null.");
-            }
-
-            if (_trainingWeek.Friday is null)
-            {
-                throw new ArgumentException("Friday cannot be null.");
-            }
-
-            if (_trainingWeek.Saturday is null)
-            {
-                throw new ArgumentException("Saturday cannot be null.");
-            }
-
-            if (_trainingWeek.Sunday is null)
-            {
-                throw new ArgumentException("Sunday cannot be null.");
-            }
-
-            return _trainingWeek;
-        }
-
-        public static TrainingWeekBuilder CreateBuilder() => new();
+        // Implement calculation logic using Workouts collection
+        return TimeSpan.FromTicks(Workouts.Sum(w => w.EstimatedTime.Ticks));
     }
 }
