@@ -1,5 +1,4 @@
-﻿using RunningPlanner.Core.Extensions;
-using RunningPlanner.Core.Models;
+﻿using RunningPlanner.Core.Models;
 
 namespace RunningPlanner.Core.TrainingPlans.HalHigdon;
 
@@ -39,68 +38,62 @@ public class HalHigdonMarathonAdvanced1
 
     private TrainingWeek GenerateWeek1()
     {
-        return TrainingWeek.TrainingWeekBuilder
-            .CreateBuilder()
-            .WithWeekNumber(1)
-            .WithTrainingPhase(TrainingPhase.Base)
-            .WithMonday(WorkoutExtensions.CreateEasyRunWorkout(4.8m, EasyPaceRange()))
-            .WithTuesday(WorkoutExtensions.CreateEasyRunWorkout(8.1m, EasyPaceRange()))
-            .WithWednesday(WorkoutExtensions.CreateEasyRunWorkout(4.8m, EasyPaceRange()))
-            .WithThursday(
-                WorkoutExtensions.CreateHillWorkout(
-                    3,
-                    8.0m,
-                    EasyPaceRange(),
-                    HillPaceRange(),
-                    RecoveryPaceRange()))
-            .WithFriday(WorkoutExtensions.CreateRestWorkout())
-            .WithSaturday(WorkoutExtensions.CreateRacePaceWorkout(8.1m, RacePaceRange()))
-            .WithSunday(WorkoutExtensions.CreateLongRunWorkout(16.1m, EasyPaceRange()))
-            .Build();
+        return TrainingWeek.Create(
+            weekNumber: 1,
+            trainingPhase: TrainingPhase.Base,
+            monday: Workout.CreateEasyRun(4.8m, EasyPaceRange()),
+            tuesday: Workout.CreateEasyRun(8.1m, EasyPaceRange()),
+            wednesday: Workout.CreateEasyRun(4.8m, EasyPaceRange()),
+            thursday: Workout.CreateHillRepeatWorkout(
+                3,
+                8.0m,
+                EasyPaceRange(),
+                HillPaceRange(),
+                RecoveryPaceRange()),
+            friday: Workout.CreateRest(),
+            saturday: Workout.CreateEasyRun(8.1m, EasyPaceRange()),
+            sunday: Workout.CreateLongRun(16.1m, EasyPaceRange()));
     }
 
     private TrainingWeek GenerateWeek2()
     {
-        return TrainingWeek.TrainingWeekBuilder
-            .CreateBuilder()
-            .WithWeekNumber(2)
-            .WithTrainingPhase(TrainingPhase.Base)
-            .WithMonday(WorkoutExtensions.CreateEasyRunWorkout(4.8m, EasyPaceRange()))
-            .WithTuesday(WorkoutExtensions.CreateEasyRunWorkout(8.1m, EasyPaceRange()))
-            .WithWednesday(WorkoutExtensions.CreateEasyRunWorkout(4.8m, EasyPaceRange()))
-            .WithThursday(
-                WorkoutExtensions.CreateTempoWorkout(
-                    30,
-                    8.0m,
-                    EasyPaceRange(),
-                    TempoPaceRange()))
-            .WithFriday(WorkoutExtensions.CreateRestWorkout())
-            .WithSaturday(WorkoutExtensions.CreateEasyRunWorkout(8.1m, EasyPaceRange()))
-            .WithSunday(WorkoutExtensions.CreateLongRunWorkout(17.7m, EasyPaceRange()))
-            .Build();
+        return TrainingWeek.Create(
+            weekNumber: 2,
+            trainingPhase: TrainingPhase.Base,
+            monday: Workout.CreateEasyRun(4.8m, EasyPaceRange()),
+            tuesday: Workout.CreateEasyRun(8.1m, EasyPaceRange()),
+            wednesday: Workout.CreateEasyRun(4.8m, EasyPaceRange()),
+            thursday: Workout.CreateTempo(
+                30,
+                8.0m,
+                EasyPaceRange(),
+                TempoPaceRange()),
+            friday: Workout.CreateRest(),
+            saturday: Workout.CreateEasyRun(8.1m, EasyPaceRange()),
+            sunday: Workout.CreateLongRun(17.7m, EasyPaceRange())
+        );
     }
 
     private TrainingWeek GenerateWeek3()
     {
-        return TrainingWeek.TrainingWeekBuilder
-            .CreateBuilder()
-            .WithWeekNumber(3)
-            .WithTrainingPhase(TrainingPhase.Base)
-            .WithMonday(WorkoutExtensions.CreateEasyRunWorkout(4.8m, EasyPaceRange()))
-            .WithTuesday(WorkoutExtensions.CreateEasyRunWorkout(9.7m, EasyPaceRange()))
-            .WithWednesday(WorkoutExtensions.CreateEasyRunWorkout(4.8m, EasyPaceRange()))
-            .WithThursday(
-                WorkoutExtensions.CreateIntervalWorkout(
-                    4,
-                    800,
-                    8.0m,
-                    EasyPaceRange(),
-                    IntervalPaceRange(),
-                    RecoveryPaceRange()))
-            .WithFriday(WorkoutExtensions.CreateRestWorkout())
-            .WithSaturday(WorkoutExtensions.CreateRacePaceWorkout(9.7m, RacePaceRange()))
-            .WithSunday(WorkoutExtensions.CreateLongRunWorkout(12.9m, EasyPaceRange()))
-            .Build();
+        return TrainingWeek.Create(
+            weekNumber: 3,
+            trainingPhase: TrainingPhase.Base,
+            monday: Workout.CreateEasyRun(4.8m, EasyPaceRange()),
+            tuesday: Workout.CreateEasyRun(9.7m, EasyPaceRange()),
+            wednesday: Workout.CreateEasyRun(4.8m, EasyPaceRange()),
+            thursday: Workout.CreateInterval(
+                4,
+                800,
+                400,
+                8.0m,
+                EasyPaceRange(),
+                IntervalPaceRange(),
+                RecoveryPaceRange(),
+                restBeforeStartIntervalDistance: 0.5m),
+            friday: Workout.CreateRest(),
+            saturday: Workout.CreateRacePace(9.7m, RacePaceRange()),
+            sunday: Workout.CreateLongRun(12.9m, EasyPaceRange()));
     }
 
     private TrainingWeek GenerateWeek4()
