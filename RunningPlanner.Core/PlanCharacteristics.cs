@@ -60,18 +60,23 @@ namespace RunningPlanner.Core.TrainingPlans
 
         // Training Specifics
         public List<WorkoutType> WorkoutTypes { get; init; } = new();
-        public decimal WeeklyMileageIncrease { get; init; } // Average percentage increase in weekly mileage
         public bool RunsLongOnWeekends { get; set; }
         public int TaperWeeks { get; init; }
+        public decimal AverageWeeklyDistance { get; set; }
+        public decimal TotalDistance { get; set; }
+        public bool HasTuneUpRace { get; set; }
+        public List<Periodization> TrainingPeriodization { get; set; }
 
         public string Description { get; init; }
         public string SuitableFor { get; init; }
-        public Dictionary<string, object> AdditionalAttributes { get; init; } = new Dictionary<string, object>();
+        public Dictionary<string, object> AdditionalAttributes { get; init; } = new();
     }
 
     public enum ProgressionStyle
     {
     }
+
+    public record Periodization(int Week, TrainingPhase TrainingPhase);
 
     // Hal Higdon-specific extension of the generic plan characteristics
     public static class HalHigdonPlans
@@ -107,10 +112,11 @@ namespace RunningPlanner.Core.TrainingPlans
                     WorkoutTypes = [WorkoutType.EasyRun, WorkoutType.MediumRun, WorkoutType.LongRun, WorkoutType.Race],
                     IncludesStrideWork = false,
                     IncludesProgressionRuns = false,
-                    WeeklyMileageIncrease = 1,
                     LongRunWeeklyPercentage = 30,
                     LongestRunDistance = 32.5m, // 20 miles in km
                     PeakWeeklyMileage = 64.5m, // ~40 miles in km
+                    AverageWeeklyDistance = 41m,
+                    TotalDistance = 742m,
                     IncludesSpeedWork = false,
                     IncludesStrengthTraining = false,
                     IncludesRacePaceRuns = false,
@@ -121,9 +127,11 @@ namespace RunningPlanner.Core.TrainingPlans
                     RunsLongOnWeekends = true,
                     HasMidweekMediumLongRun = true,
                     PrimaryLongRunDay = DayOfWeek.Saturday,
-                    TaperWeeks = 3,
+                    TaperWeeks = 2,
+                    HasTuneUpRace = true,
+                    TrainingPeriodization = HalHigdonTrainingPeriodization(),
                     Description =
-                        "This is Hal's most popular program: the Novice 1 Marathon Training Program. If you are training for your first marathon, this is the training program for you!",
+                    "This is Hal's most popular program: the Novice 1 Marathon Training Program. If you are training for your first marathon, this is the training program for you!",
                     SuitableFor =
                         "First-time marathoners or experienced runners seeking a gentle approach to marathon training.",
                     AdditionalAttributes = new Dictionary<string, object>
@@ -150,10 +158,11 @@ namespace RunningPlanner.Core.TrainingPlans
                     ],
                     IncludesStrideWork = false,
                     IncludesProgressionRuns = false,
-                    WeeklyMileageIncrease = 1,
                     LongRunWeeklyPercentage = 30,
                     LongestRunDistance = 32.5m, // 20 miles in km
-                    PeakWeeklyMileage = 72.5m, // ~45 miles in km
+                    PeakWeeklyMileage = 58m, // ~45 miles in km
+                    AverageWeeklyDistance = 44m,
+                    TotalDistance = 787m,
                     IncludesSpeedWork = false,
                     IncludesStrengthTraining = false,
                     IncludesRacePaceRuns = true,
@@ -164,7 +173,9 @@ namespace RunningPlanner.Core.TrainingPlans
                     RunsLongOnWeekends = true,
                     HasMidweekMediumLongRun = true,
                     PrimaryLongRunDay = DayOfWeek.Saturday,
-                    TaperWeeks = 3,
+                    TaperWeeks = 2,
+                    HasTuneUpRace = true,
+                    TrainingPeriodization = HalHigdonTrainingPeriodization(),
                     Description =
                         "Novice 2 is designed to fit comfortably between the Novice 1 and Intermediate 1 marathon plans.",
                     SuitableFor =
@@ -194,10 +205,11 @@ namespace RunningPlanner.Core.TrainingPlans
                     ],
                     IncludesStrideWork = false,
                     IncludesProgressionRuns = false,
-                    WeeklyMileageIncrease = 1,
                     LongRunWeeklyPercentage = 30,
-                    LongestRunDistance = 32.5m, // 20 miles in km
-                    PeakWeeklyMileage = 82.0m, // ~51 miles in km
+                    LongestRunDistance = 32.5m,
+                    PeakWeeklyMileage = 71m,
+                    AverageWeeklyDistance = 53m,
+                    TotalDistance = 947m,
                     IncludesSpeedWork = false,
                     IncludesStrengthTraining = false,
                     IncludesRacePaceRuns = true,
@@ -208,7 +220,9 @@ namespace RunningPlanner.Core.TrainingPlans
                     RunsLongOnWeekends = true,
                     HasMidweekMediumLongRun = true,
                     PrimaryLongRunDay = DayOfWeek.Sunday,
-                    TaperWeeks = 3,
+                    TaperWeeks = 2,
+                    HasTuneUpRace = true,
+                    TrainingPeriodization = HalHigdonTrainingPeriodization(),
                     Description =
                         "A slight jump in difficulty from the Novice programs, with higher weekly mileage and pace runs on Saturdays.",
                     SuitableFor =
@@ -238,10 +252,11 @@ namespace RunningPlanner.Core.TrainingPlans
                     ],
                     IncludesStrideWork = false,
                     IncludesProgressionRuns = false,
-                    WeeklyMileageIncrease = 1,
                     LongRunWeeklyPercentage = 30,
-                    LongestRunDistance = 32.5m, // 20 miles in km
-                    PeakWeeklyMileage = 88.5m, // ~55 miles in km
+                    LongestRunDistance = 32.5m,
+                    PeakWeeklyMileage = 80.5m,
+                    AverageWeeklyDistance = 58m,
+                    TotalDistance = 1036m,
                     IncludesSpeedWork = false,
                     IncludesStrengthTraining = false,
                     IncludesRacePaceRuns = true,
@@ -252,7 +267,9 @@ namespace RunningPlanner.Core.TrainingPlans
                     RunsLongOnWeekends = true,
                     HasMidweekMediumLongRun = true,
                     PrimaryLongRunDay = DayOfWeek.Sunday,
-                    TaperWeeks = 3,
+                    TaperWeeks = 2,
+                    HasTuneUpRace = true,
+                    TrainingPeriodization = HalHigdonTrainingPeriodization(),
                     Description =
                         "A slight jump in difficulty from Intermediate 1, with three 20-milers toward the end of the program and higher overall mileage.",
                     SuitableFor =
@@ -277,8 +294,8 @@ namespace RunningPlanner.Core.TrainingPlans
                     QualityWorkoutsPerWeek = 3,
                     WorkoutTypes =
                     [
-                        WorkoutType.EasyRun, 
-                        WorkoutType.MediumRun, 
+                        WorkoutType.EasyRun,
+                        WorkoutType.MediumRun,
                         WorkoutType.RacePace,
                         WorkoutType.TempoRun,
                         WorkoutType.HillRepeat,
@@ -287,10 +304,11 @@ namespace RunningPlanner.Core.TrainingPlans
                     ],
                     IncludesStrideWork = false,
                     IncludesProgressionRuns = false,
-                    WeeklyMileageIncrease = 1,
                     LongRunWeeklyPercentage = 30,
-                    LongestRunDistance = 32.5m, // 20 miles in km
-                    PeakWeeklyMileage = 96.5m, // ~60 miles in km
+                    LongestRunDistance = 32.5m,
+                    PeakWeeklyMileage = 94m,
+                    AverageWeeklyDistance = 67m,
+                    TotalDistance = 1206m,
                     IncludesSpeedWork = true,
                     IncludesStrengthTraining = false,
                     IncludesRacePaceRuns = true,
@@ -301,7 +319,9 @@ namespace RunningPlanner.Core.TrainingPlans
                     RunsLongOnWeekends = true,
                     HasMidweekMediumLongRun = true,
                     PrimaryLongRunDay = DayOfWeek.Sunday,
-                    TaperWeeks = 3,
+                    TaperWeeks = 2,
+                    HasTuneUpRace = true,
+                    TrainingPeriodization = HalHigdonTrainingPeriodization(),
                     Description =
                         "A challenging program with a progressive buildup to three 20-milers, with one quality speed session per week.",
                     SuitableFor =
@@ -326,8 +346,8 @@ namespace RunningPlanner.Core.TrainingPlans
                     QualityWorkoutsPerWeek = 4,
                     WorkoutTypes =
                     [
-                        WorkoutType.EasyRun, 
-                        WorkoutType.MediumRun, 
+                        WorkoutType.EasyRun,
+                        WorkoutType.MediumRun,
                         WorkoutType.RacePace,
                         WorkoutType.TempoRun,
                         WorkoutType.HillRepeat,
@@ -337,10 +357,11 @@ namespace RunningPlanner.Core.TrainingPlans
                     ],
                     IncludesStrideWork = false,
                     IncludesProgressionRuns = false,
-                    WeeklyMileageIncrease = 1,
                     LongRunWeeklyPercentage = 30,
-                    LongestRunDistance = 32.5m, // 20 miles in km
-                    PeakWeeklyMileage = 113m, // ~70 miles in km
+                    LongestRunDistance = 32.5m,
+                    PeakWeeklyMileage = 97m,
+                    AverageWeeklyDistance = 66m,
+                    TotalDistance = 1194m,
                     IncludesSpeedWork = true,
                     IncludesStrengthTraining = false,
                     IncludesRacePaceRuns = true,
@@ -351,7 +372,9 @@ namespace RunningPlanner.Core.TrainingPlans
                     RunsLongOnWeekends = true,
                     HasMidweekMediumLongRun = true,
                     PrimaryLongRunDay = DayOfWeek.Sunday,
-                    TaperWeeks = 3,
+                    TaperWeeks = 2,
+                    HasTuneUpRace = true,
+                    TrainingPeriodization = HalHigdonTrainingPeriodization(),
                     Description =
                         "Hal's most difficult program with two quality speed sessions per week. Designed only for the hard core, those willing to take it to the limit.",
                     SuitableFor =
@@ -366,6 +389,30 @@ namespace RunningPlanner.Core.TrainingPlans
                 // Default case for unsupported combinations
                 _ => throw new ArgumentException($"Combination of level {level} and distance {distance} not supported")
             };
+        }
+
+        private static List<Periodization> HalHigdonTrainingPeriodization()
+        {
+            return [
+                new Periodization(1, TrainingPhase.Base),
+                new Periodization(2, TrainingPhase.Base),
+                new Periodization(3, TrainingPhase.Base),
+                new Periodization(4, TrainingPhase.Build),
+                new Periodization(5, TrainingPhase.Build),
+                new Periodization(6, TrainingPhase.Build),
+                new Periodization(7, TrainingPhase.Build),
+                new Periodization(8, TrainingPhase.Build),
+                new Periodization(9, TrainingPhase.TuneUpRace),
+                new Periodization(10, TrainingPhase.Peak),
+                new Periodization(11, TrainingPhase.Peak),
+                new Periodization(12, TrainingPhase.Peak),
+                new Periodization(13, TrainingPhase.Peak),
+                new Periodization(14, TrainingPhase.Peak),
+                new Periodization(15, TrainingPhase.Peak),
+                new Periodization(16, TrainingPhase.Taper),
+                new Periodization(17, TrainingPhase.Taper),
+                new Periodization(18, TrainingPhase.Race)
+            ];
         }
 
         // Method to get all available Hal Higdon marathon plans
