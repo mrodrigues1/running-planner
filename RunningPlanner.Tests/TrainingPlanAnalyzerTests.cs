@@ -9,7 +9,12 @@ public class TrainingPlanAnalyzerTests
     public void Test1()
     {
         // Arrange
-        var plan = new HalHigdonMarathonAdvanced1();
+        var plan = new HalHigdonMarathonNovice1();
+        var plan2 = new HalHigdonMarathonNovice2();
+        var plan3 = new HalHigdonMarathonIntermediate1();
+        var plan4 = new HalHigdonMarathonIntermediate2();
+        var plan5 = new HalHigdonMarathonAdvanced1();
+        var plan6 = new HalHigdonMarathonAdvanced2();
 
         // Act
 
