@@ -658,6 +658,7 @@ public record Workout
 public enum WorkoutType
 {
     Invalid,
+    Cross,
     Rest,
     WalkRun,
     EasyRun,
