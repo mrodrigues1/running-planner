@@ -1,4 +1,5 @@
-﻿using RunningPlanner.Core.PlanGenerator.Marathon;
+﻿using RunningPlanner.Core;
+using RunningPlanner.Core.PlanGenerator.Marathon;
 
 namespace RunningPlanner.Tests;
 
@@ -13,7 +14,8 @@ public class MarathonPlanGeneratorParametersTests
             RaceDistance = 42.1m,
             WeeklyRunningDays = 5,
             CurrentWeeklyMileage = 45m,
-            PeakWeeklyMileage = 80m
+            PeakWeeklyMileage = 80m,
+            RunnerLevel = ExperienceLevel.Intermediate
         };
         
         var sut = new MarathonPlanGenerator(marathonPlanGeneratorParameters);

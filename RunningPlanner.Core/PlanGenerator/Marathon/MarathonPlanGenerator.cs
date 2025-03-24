@@ -55,6 +55,22 @@ public class MarathonPlanGenerator
 
         var weeklyMileages = CalculateWeeklyMileage(phaseWeeks);
 
+        foreach (var weeklyMileage in weeklyMileages)
+        {
+            var longRunDistance = CalculateLongRunDistance(
+                weeklyMileage.week,
+                weeklyMileage.trainingPhase,
+                weeklyMileage.weeklyMileage);
+            
+            var remainingMileage = weeklyMileage.weeklyMileage - longRunDistance;
+
+            var workouts = new Dictionary<DayOfWeek, WorkoutSample>();
+
+            var longRun = WorkoutSample.CreateLongRun(longRunDistance);
+
+            workouts[_parameters.LongRunDay] = longRun;
+        }
+
         return null!;
     }
 
@@ -78,10 +94,10 @@ public class MarathonPlanGenerator
         return phaseWeeks;
     }
 
-    private List<(int week, decimal weeklyMileage, TrainingPhase trainingPhase)?> CalculateWeeklyMileage(
+    private List<(int week, decimal weeklyMileage, TrainingPhase trainingPhase)> CalculateWeeklyMileage(
         Dictionary<TrainingPhase, int> phaseWeeks)
     {
-        List<(int week, decimal weeklyMileage, TrainingPhase trainingPhase)?> mileageByWeek = [];
+        List<(int week, decimal weeklyMileage, TrainingPhase trainingPhase)> mileageByWeek = [];
 
         // Create each training week
         int weekNumber = 1;
@@ -209,5 +225,48 @@ public class MarathonPlanGenerator
         var buildWeekMileage = isStepBackWeek ? targetMileage * reducePercentage : targetMileage;
 
         return Math.Round(buildWeekMileage, 0, MidpointRounding.AwayFromZero);
+    }
+
+    private decimal CalculateLongRunDistance(int weekNumber, TrainingPhase phase, decimal weeklyMileage)
+    {
+        if (phase == TrainingPhase.Race)
+        {
+            return 42.2m; // Marathon distance
+        }
+
+        // Long run is typically 30-40% of weekly volume
+        decimal longRunPercent = 0.32m; // Starting point
+
+        switch (phase)
+        {
+            case TrainingPhase.Base:
+                longRunPercent = 0.32m;
+
+                break;
+            case TrainingPhase.Build:
+                longRunPercent = 0.36m;
+                // Cap at 32km during build for most levels except elite
+                var calculatedDistanceBuild = weeklyMileage * longRunPercent;
+
+                return _parameters.RunnerLevel == ExperienceLevel.Elite
+                    ? Math.Min(calculatedDistanceBuild, 35m)
+                    : Math.Min(calculatedDistanceBuild, 32m);
+            case TrainingPhase.Peak:
+                longRunPercent = 0.4m;
+                // Cap at 32km during build for most levels except elite
+                var calculatedDistancePeak = weeklyMileage * longRunPercent;
+
+                return _parameters.RunnerLevel == ExperienceLevel.Elite
+                    ? Math.Min(calculatedDistancePeak, 35m)
+                    : Math.Min(calculatedDistancePeak, 32m);
+            case TrainingPhase.Taper:
+                // During taper, long run reduces more significantly
+                int weeksToRace = _parameters.PlanWeeks - weekNumber + 1;
+                longRunPercent = 0.3m - (0.05m * (_parameters.TaperWeeks - weeksToRace));
+
+                break;
+        }
+
+        return weeklyMileage * longRunPercent;
     }
 }

@@ -152,7 +152,7 @@ public class WorkoutSample
     /// <summary>
     /// Creates a long run workout.
     /// </summary>
-    public static WorkoutSample CreateLongRun(decimal distance, (TimeSpan min, TimeSpan max) pace)
+    public static WorkoutSample CreateLongRun(decimal distance)
     {
         var step = SimpleStepSample.CreateWithKilometers(
             StepType.Run,
@@ -164,7 +164,7 @@ public class WorkoutSample
     /// <summary>
     /// Creates a race pace workout.
     /// </summary>
-    public static WorkoutSample CreateRacePace(decimal distance, (TimeSpan min, TimeSpan max) pace = default)
+    public static WorkoutSample CreateRacePace(decimal distance)
     {
         var step = SimpleStepSample.CreateWithKilometers(
             StepType.Run,
