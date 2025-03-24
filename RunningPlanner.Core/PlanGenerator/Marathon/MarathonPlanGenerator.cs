@@ -51,11 +51,15 @@ public class MarathonPlanGenerator
                 $"Plan weeks must be between 12 and 24, but was {planWeeks}.");
         }
 
-        var basePercentage = 0.15m;
-        var buildPercentage = 0.5m;
-        var peakPercentage = 0.2m;
-        var taperPlusRacePercentage = 0.15m;
+        var phaseWeeks = GeneratePhaseWeeks(planWeeks);
 
+        var weeklyMileages = CalculateWeeklyMileage(phaseWeeks);
+
+        return null!;
+    }
+
+    private Dictionary<TrainingPhase, int> GeneratePhaseWeeks(int planWeeks)
+    {
         var taperStartWeek = planWeeks - _parameters.TaperWeeks;
         var buildWeeks = (int) Math.Ceiling(taperStartWeek * 0.5);
         var peakWeeks = (int) Math.Ceiling(taperStartWeek * 0.2);
@@ -71,7 +75,13 @@ public class MarathonPlanGenerator
             {TrainingPhase.Race, 1}
         };
 
-        List<(int week, decimal weeklyMileages, TrainingPhase trainingPhase)> mileageByWeek = [];
+        return phaseWeeks;
+    }
+
+    private List<(int week, decimal weeklyMileage, TrainingPhase trainingPhase)?> CalculateWeeklyMileage(
+        Dictionary<TrainingPhase, int> phaseWeeks)
+    {
+        List<(int week, decimal weeklyMileage, TrainingPhase trainingPhase)?> mileageByWeek = [];
 
         // Create each training week
         int weekNumber = 1;
@@ -80,74 +90,124 @@ public class MarathonPlanGenerator
         {
             for (int i = 0; i < phase.Value; i++)
             {
-                if (phase.Key == TrainingPhase.Base)
+                switch (phase.Key)
                 {
-                    // Linear progression from current to 75% of peak during base phase
-                    var basePhaseWeeks = phase.Value;
-                    var baseProgress = (decimal) weekNumber / basePhaseWeeks;
+                    case TrainingPhase.Base:
+                    {
+                        // Linear progression from current to 70% of peak during base phase
+                        var totalBasePhaseWeeks = phase.Value;
+                        var baseProgress = (decimal) weekNumber / totalBasePhaseWeeks;
 
-                    var baseWeekMileage = _parameters.CurrentWeeklyMileage +
-                                          ((_parameters.PeakWeeklyMileage * 0.75m) - _parameters.CurrentWeeklyMileage) *
-                                          baseProgress;
-                    mileageByWeek.Add((weekNumber, baseWeekMileage, TrainingPhase.Base));
-                    weekNumber++;
+                        var targetMileage = _parameters.CurrentWeeklyMileage +
+                                            ((_parameters.PeakWeeklyMileage * 0.7m) -
+                                             _parameters.CurrentWeeklyMileage) *
+                                            baseProgress;
 
-                    continue;
-                }
+                        var baseWeekMileage = CalculateWeekMileageConsideringStepBackWeek(
+                            weekNumber,
+                            totalBasePhaseWeeks,
+                            targetMileage,
+                            reducePercentage: 0.9m);
+                        mileageByWeek.Add((weekNumber, baseWeekMileage, TrainingPhase.Base));
 
-                if (phase.Key == TrainingPhase.Build)
-                {
-                    // Build phase: progress from 75% to 100% of peak
-                    var totalBuildWeeks = phase.Value;
-                    var basePhaseLength = phaseWeeks[TrainingPhase.Base];
-                    var buildWeekNumber = weekNumber - basePhaseLength;
-                    var buildProgress = (decimal) buildWeekNumber / totalBuildWeeks;
+                        weekNumber++;
 
-                    // Every third week is a step-back week (except near the peak)
-                    bool isStepBackWeek = buildWeekNumber % 3 == 0 && buildWeekNumber < totalBuildWeeks - 1;
+                        break;
+                    }
+                    case TrainingPhase.Build:
+                    {
+                        // Build phase: progress from 70% to 90% of peak
+                        var totalBuildWeeks = phase.Value;
+                        var basePhaseLength = phaseWeeks[TrainingPhase.Base];
+                        var buildWeekNumber = weekNumber - basePhaseLength;
+                        var buildProgress = (decimal) buildWeekNumber / totalBuildWeeks;
 
-                    var targetMileage = (_parameters.PeakWeeklyMileage * 0.75m) +
-                                        ((_parameters.PeakWeeklyMileage - _parameters.PeakWeeklyMileage * 0.75m) *
-                                         buildProgress);
+                        var targetMileage = (_parameters.PeakWeeklyMileage * 0.7m) +
+                                            ((_parameters.PeakWeeklyMileage * 0.9m -
+                                              _parameters.PeakWeeklyMileage * 0.7m) *
+                                             buildProgress);
 
-                    var buildWeekMileage = isStepBackWeek ? targetMileage * 0.80m : targetMileage;
+                        var buildWeekMileage = CalculateWeekMileageConsideringStepBackWeek(
+                            buildWeekNumber,
+                            totalBuildWeeks,
+                            targetMileage);
 
-                    mileageByWeek.Add((weekNumber, buildWeekMileage, TrainingPhase.Build));
+                        mileageByWeek.Add((weekNumber, buildWeekMileage, TrainingPhase.Build));
 
-                    weekNumber++;
+                        weekNumber++;
 
-                    continue;
-                }
+                        break;
+                    }
+                    case TrainingPhase.Peak:
+                    {
+                        // Peak phase is at 90-100% of peak mileage
+                        int peakWeekNumber = weekNumber -
+                                             (_parameters.PlanWeeks - phase.Value - phaseWeeks[TrainingPhase.Taper]) +
+                                             1;
 
-                if (phase.Key == TrainingPhase.Taper)
-                {
-                    var taperReduction = (decimal) _parameters.TaperWeeks -
-                                         (weekNumber - (_parameters.PlanWeeks - _parameters.TaperWeeks)) +
-                                         1;
-                    var taperPercent = 1m - (taperReduction * 0.15m); // Reduce by ~15% each taper week
+                        // First peak week is about 90%, second is 95%, third is 100%
+                        var peakPercentage = 0.9m + (0.05m * (peakWeekNumber - 1));
+                        var targetMileage = _parameters.PeakWeeklyMileage * Math.Min(1m, peakPercentage);
 
-                    var taperWeekMileage = _parameters.PeakWeeklyMileage * taperPercent;
+                        var peakWeekMileage = CalculateWeekMileageConsideringStepBackWeek(
+                            peakWeekNumber,
+                            phase.Value,
+                            targetMileage);
+                        mileageByWeek.Add((weekNumber, peakWeekMileage, TrainingPhase.Peak));
+                        weekNumber++;
 
-                    mileageByWeek.Add((weekNumber, taperWeekMileage, TrainingPhase.Taper));
-                    weekNumber++;
+                        break;
+                    }
+                    case TrainingPhase.Taper:
+                    {
+                        var taperReduction = (weekNumber - (_parameters.PlanWeeks - phase.Value)) + 1;
+                        var taperPercent = 1m - (taperReduction * 0.15m); // Reduce by ~15% each taper week
 
-                    continue;
-                }
+                        var taperWeekMileage = _parameters.PeakWeeklyMileage * taperPercent;
 
-                // Calculate progressive weekly mileage
-                if (phase.Key == TrainingPhase.Race)
-                {
-                    var raceWeekMileage =
-                        _parameters.CurrentWeeklyMileage * 0.5m; // Race week is typically around 50% volume
-                    mileageByWeek.Add((weekNumber, raceWeekMileage, TrainingPhase.Race));
-                    weekNumber++;
+                        mileageByWeek.Add(
+                            (weekNumber, Math.Round(taperWeekMileage, 0, MidpointRounding.AwayFromZero),
+                                TrainingPhase.Taper));
+                        weekNumber++;
 
-                    continue;
+                        break;
+                    }
+                    case TrainingPhase.Race:
+                    {
+                        var raceWeekMileage =
+                            _parameters.CurrentWeeklyMileage * 0.5m; // Race week is typically around 50% volume
+
+                        mileageByWeek.Add(
+                            (weekNumber, Math.Round(raceWeekMileage, 0, MidpointRounding.AwayFromZero),
+                                TrainingPhase.Race));
+
+                        weekNumber++;
+
+                        break;
+                    }
                 }
             }
         }
 
+        return mileageByWeek;
+    }
 
-        return null!;
+    private static decimal CalculateWeekMileageConsideringStepBackWeek(
+        int weekNumber,
+        int totalWeeks,
+        decimal targetMileage,
+        int stepBackWeeks = 3,
+        decimal reducePercentage = 0.85m)
+    {
+        // Every third week is a step-back week (except near end of phase)
+        bool isStepBackWeek = weekNumber % stepBackWeeks == 0
+                              // avoid start of phase
+                              &&
+                              weekNumber > 1 &&
+                              weekNumber < totalWeeks - 1;
+
+        var buildWeekMileage = isStepBackWeek ? targetMileage * reducePercentage : targetMileage;
+
+        return Math.Round(buildWeekMileage, 0, MidpointRounding.AwayFromZero);
     }
 }

@@ -12,8 +12,8 @@ public class MarathonPlanGeneratorParametersTests
             RaceDate = DateTime.Today.AddDays(120),
             RaceDistance = 42.1m,
             WeeklyRunningDays = 5,
-            CurrentWeeklyMileage = 40m,
-            PeakWeeklyMileage = 80m,
+            CurrentWeeklyMileage = 45m,
+            PeakWeeklyMileage = 80m
         };
         
         var sut = new MarathonPlanGenerator(marathonPlanGeneratorParameters);
