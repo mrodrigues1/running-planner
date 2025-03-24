@@ -1,25 +1,7 @@
 ﻿using RunningPlanner.Core.Models;
 
-namespace RunningPlanner.Core.TrainingPlans
+namespace RunningPlanner.Core
 {
-    public enum RaceDistance
-    {
-        FiveK,
-        TenK,
-        HalfMarathon,
-        Marathon,
-        UltraMarathon
-    }
-
-    public enum ExperienceLevel
-    {
-        Beginner,
-        Novice,
-        Intermediate,
-        Advanced,
-        Elite
-    }
-
     // Base generic plan characteristics class that can be used for any training plan system
     public record PlanCharacteristics
     {
