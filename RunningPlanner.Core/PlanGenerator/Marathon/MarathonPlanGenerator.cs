@@ -1,4 +1,5 @@
 ﻿using RunningPlanner.Core.Models;
+using RunningPlanner.Core.Models.Paces;
 
 namespace RunningPlanner.Core.PlanGenerator.Marathon;
 
@@ -7,15 +8,17 @@ public class MarathonPlanGeneratorParameters
     // Required parameters
     public DateTime RaceDate { get; set; }
     public ExperienceLevel RunnerLevel { get; set; }
-    public int WeeklyRunningDays { get; set; }
+    public List<DayOfWeek> WeeklyRunningDays { get; set; } = [];
     public decimal CurrentWeeklyMileage { get; set; }
     public decimal RaceDistance { get; set; }
     public decimal PeakWeeklyMileage { get; set; }
+    public (TimeSpan Time, decimal Distance) RecentRaceResult { get; set; }
+    public TimeSpan GoalTime { get; set; }
 
     // Optional parameters with sensible defaults
     public int QualityWorkoutDays { get; set; } = 2;
     public List<DayOfWeek> QualityWorkoutDaysTest { get; set; } = [];
-    public DayOfWeek LongRunDay { get; set; } = DayOfWeek.Saturday;
+    public DayOfWeek LongRunDay { get; set; } = DayOfWeek.Sunday;
     public int TaperWeeks { get; set; } = 3;
     public List<WorkoutType> PreferredWorkoutTypes { get; set; } = [];
 
@@ -51,27 +54,91 @@ public class MarathonPlanGenerator
                 $"Plan weeks must be between 12 and 24, but was {planWeeks}.");
         }
 
+        if (_parameters.WeeklyRunningDays.Count < 3)
+        {
+            throw new Exception(
+                $"At least 3 weekly running days must be specified, but only {_parameters.WeeklyRunningDays.Count} were specified.");
+        }
+
         var phaseWeeks = GeneratePhaseWeeks(planWeeks);
 
         var weeklyMileages = CalculateWeeklyMileage(phaseWeeks);
 
+        List<TrainingWeek> trainingWeeks = [];
+
+        TrainingPaces trainingPaces;
+
+        if (_parameters.GoalTime != TimeSpan.Zero)
+        {
+            trainingPaces = VdotCalculator.GetTrainingPacesFromRace(_parameters.RaceDistance, _parameters.GoalTime);
+        }
+        else
+        {
+            trainingPaces = VdotCalculator.GetTrainingPacesFromRace(
+                _parameters.RecentRaceResult.Distance,
+                _parameters.RecentRaceResult.Time);
+        }
+
         foreach (var weeklyMileage in weeklyMileages)
         {
+            var workouts = new Dictionary<DayOfWeek, Workout>();
+
             var longRunDistance = CalculateLongRunDistance(
                 weeklyMileage.week,
                 weeklyMileage.trainingPhase,
                 weeklyMileage.weeklyMileage);
-            
-            var remainingMileage = weeklyMileage.weeklyMileage - longRunDistance;
 
-            var workouts = new Dictionary<DayOfWeek, WorkoutSample>();
+            if (weeklyMileage.trainingPhase is not TrainingPhase.Race)
+            {
+                var longRun = Workout.CreateLongRun(longRunDistance, trainingPaces.EasyPace);
 
-            var longRun = WorkoutSample.CreateLongRun(longRunDistance);
+                workouts[_parameters.LongRunDay] = longRun;
 
-            workouts[_parameters.LongRunDay] = longRun;
+                var remainingMileage = weeklyMileage.weeklyMileage - longRunDistance;
+                var remainingRunningDays = _parameters.WeeklyRunningDays.Count - 1;
+                var distancePerDay = remainingMileage / remainingRunningDays;
+
+                foreach (var runningDay in _parameters.WeeklyRunningDays.Where(day => day != _parameters.LongRunDay))
+                {
+                    workouts[runningDay] = Workout.CreateEasyRun(distancePerDay, trainingPaces.EasyPace);
+                }
+            }
+            else
+            {
+                var longRun = Workout.CreateRace(longRunDistance);
+
+                var raceDayOfWeek = _parameters.RaceDate.DayOfWeek;
+                workouts[raceDayOfWeek] = longRun;
+
+                var remainingRunningDays = 3;
+                var remainingMileage = weeklyMileage.weeklyMileage / remainingRunningDays;
+
+                var runningDays = _parameters.WeeklyRunningDays.Where(day => day != raceDayOfWeek).ToArray();
+
+                for (int i = 0; i < remainingRunningDays; i++)
+                {
+                    var day = runningDays[i];
+
+                    workouts[day] = Workout.CreateEasyRun(remainingMileage, trainingPaces.EasyPace);
+                }
+            }
+
+            trainingWeeks.Add(
+                TrainingWeek.Create(
+                    weekNumber: weeklyMileage.week,
+                    trainingPhase: weeklyMileage.trainingPhase,
+                    monday: workouts.GetValueOrDefault(DayOfWeek.Monday),
+                    tuesday: workouts.GetValueOrDefault(DayOfWeek.Tuesday),
+                    wednesday: workouts.GetValueOrDefault(DayOfWeek.Wednesday),
+                    thursday: workouts.GetValueOrDefault(DayOfWeek.Thursday),
+                    friday: workouts.GetValueOrDefault(DayOfWeek.Friday),
+                    saturday: workouts.GetValueOrDefault(DayOfWeek.Saturday),
+                    sunday: workouts.GetValueOrDefault(DayOfWeek.Sunday)
+                )
+            );
         }
 
-        return null!;
+        return TrainingPlan.Create(trainingWeeks);
     }
 
     private Dictionary<TrainingPhase, int> GeneratePhaseWeeks(int planWeeks)
@@ -191,7 +258,7 @@ public class MarathonPlanGenerator
                     case TrainingPhase.Race:
                     {
                         var raceWeekMileage =
-                            _parameters.CurrentWeeklyMileage * 0.5m; // Race week is typically around 50% volume
+                            _parameters.CurrentWeeklyMileage * 0.35m; // Race week is typically around 35% volume
 
                         mileageByWeek.Add(
                             (weekNumber, Math.Round(raceWeekMileage, 0, MidpointRounding.AwayFromZero),
