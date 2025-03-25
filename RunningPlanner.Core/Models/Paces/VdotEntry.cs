@@ -60,7 +60,7 @@ public class VdotEntry
         // Handle different time formats (mm:ss or h:mm:ss)
         if (timeString.Count(c => c == ':') == 1)
         {
-            return TimeSpan.ParseExact(timeString, @"mm\:ss", null);
+            return TimeSpan.ParseExact(timeString, [@"m\:ss", @"mm\:ss"], null);
         }
         else
         {
