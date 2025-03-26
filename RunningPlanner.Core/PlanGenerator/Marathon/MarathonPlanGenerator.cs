@@ -8,7 +8,7 @@ public class MarathonPlanGeneratorParameters
     // Required parameters
     public DateTime RaceDate { get; set; }
     public ExperienceLevel RunnerLevel { get; set; }
-    public List<DayOfWeek> WeeklyRunningDays { get; set; } = [];
+    public DayOfWeek[] WeeklyRunningDays { get; set; } = [];
     public decimal CurrentWeeklyMileage { get; set; }
     public decimal RaceDistance { get; set; }
     public decimal PeakWeeklyMileage { get; set; }
@@ -16,11 +16,11 @@ public class MarathonPlanGeneratorParameters
     public TimeSpan GoalTime { get; set; }
 
     // Optional parameters with sensible defaults
-    public int QualityWorkoutDays { get; set; } = 2;
-    public List<DayOfWeek> QualityWorkoutDaysTest { get; set; } = [];
+    public DayOfWeek[] QualityWorkoutDays { get; set; } = [];
     public DayOfWeek LongRunDay { get; set; } = DayOfWeek.Sunday;
     public int TaperWeeks { get; set; } = 3;
-    public List<WorkoutType> PreferredWorkoutTypes { get; set; } = [];
+    public WorkoutType[] PreferredWorkoutTypes { get; set; } = [];
+    public bool IncludeMidWeekMediumRun { get; set; }
 
     // Derived properties
     public int PlanWeeks => CalculatePlanWeeks();
@@ -35,6 +35,7 @@ public class MarathonPlanGeneratorParameters
 
 public class MarathonPlanGenerator
 {
+    private const decimal MediumRunPercent = 0.20m;
     private readonly MarathonPlanGeneratorParameters _parameters;
 
     public MarathonPlanGenerator(MarathonPlanGeneratorParameters parameters)
@@ -54,10 +55,16 @@ public class MarathonPlanGenerator
                 $"Plan weeks must be between 12 and 24, but was {planWeeks}.");
         }
 
-        if (_parameters.WeeklyRunningDays.Count < 3)
+        if (_parameters.WeeklyRunningDays.Length < 3)
         {
             throw new Exception(
-                $"At least 3 weekly running days must be specified, but only {_parameters.WeeklyRunningDays.Count} were specified.");
+                $"At least 3 weekly running days must be specified, but only {_parameters.WeeklyRunningDays.Length} were specified.");
+        }
+
+        if (_parameters.QualityWorkoutDays.Length > 2)
+        {
+            throw new Exception(
+                $"At most 2 quality workout days can be specified, but {_parameters.QualityWorkoutDays.Length} were specified.");
         }
 
         var phaseWeeks = GeneratePhaseWeeks(planWeeks);
@@ -83,32 +90,71 @@ public class MarathonPlanGenerator
         {
             var workouts = new Dictionary<DayOfWeek, Workout>();
 
-            var longRunDistance = CalculateLongRunDistance(
+            var longRun = CalculateLongRunDistance(
                 weeklyMileage.week,
                 weeklyMileage.trainingPhase,
                 weeklyMileage.weeklyMileage);
 
+            var nonQualityDays = _parameters.WeeklyRunningDays
+                .Except(_parameters.QualityWorkoutDays)
+                .Except([_parameters.LongRunDay])
+                .ToArray();
+
             if (weeklyMileage.trainingPhase is not TrainingPhase.Race)
             {
-                var longRun = Workout.CreateLongRun(longRunDistance, trainingPaces.EasyPace);
+                var longRunWorkout = Workout.CreateLongRun(longRun.distance, trainingPaces.EasyPace);
 
-                workouts[_parameters.LongRunDay] = longRun;
+                workouts[_parameters.LongRunDay] = longRunWorkout;
 
-                var remainingMileage = weeklyMileage.weeklyMileage - longRunDistance;
-                var remainingRunningDays = _parameters.WeeklyRunningDays.Count - 1;
+                var mediumRunDistance = 0m;
+
+                if (_parameters.IncludeMidWeekMediumRun)
+                {
+                    var (mediumRun, mediumRunDay) = MediumRun(weeklyMileage, trainingPaces, nonQualityDays);
+
+                    mediumRunDistance = mediumRun.TotalDistance.DistanceValue;
+
+                    workouts[mediumRunDay] = mediumRun;
+                }
+
+                var remainingPercent = 1m - longRun.percent - MediumRunPercent;
+                var remainingMileage = weeklyMileage.weeklyMileage - longRun.distance - mediumRunDistance;
+
+                if (_parameters.QualityWorkoutDays.Length != 0)
+                {
+                    var qualityWorkoutPercent = 0.4m;
+                    var qualityWorkoutDistance = remainingMileage * qualityWorkoutPercent;
+
+                    foreach (var qualityWorkoutDay in _parameters.QualityWorkoutDays)
+                    {
+                        switch (weeklyMileage.trainingPhase)
+                        {
+                            case TrainingPhase.Base:
+                                break;
+                            case TrainingPhase.Build:
+                                break;
+                            case TrainingPhase.Peak:
+                                break;
+                            case TrainingPhase.Taper:
+                                break;
+                        }
+                    }
+                }
+
+                var remainingRunningDays = nonQualityDays.Length;
                 var distancePerDay = remainingMileage / remainingRunningDays;
 
-                foreach (var runningDay in _parameters.WeeklyRunningDays.Where(day => day != _parameters.LongRunDay))
+                foreach (var nonQualityDay in nonQualityDays)
                 {
-                    workouts[runningDay] = Workout.CreateEasyRun(distancePerDay, trainingPaces.EasyPace);
+                    workouts[nonQualityDay] = Workout.CreateEasyRun(distancePerDay, trainingPaces.EasyPace);
                 }
             }
             else
             {
-                var longRun = Workout.CreateRace(longRunDistance);
+                var longRunWorkout = Workout.CreateRace(longRun.distance);
 
                 var raceDayOfWeek = _parameters.RaceDate.DayOfWeek;
-                workouts[raceDayOfWeek] = longRun;
+                workouts[raceDayOfWeek] = longRunWorkout;
 
                 var remainingRunningDays = 3;
                 var remainingMileage = weeklyMileage.weeklyMileage / remainingRunningDays;
@@ -294,11 +340,14 @@ public class MarathonPlanGenerator
         return Math.Round(buildWeekMileage, 0, MidpointRounding.AwayFromZero);
     }
 
-    private decimal CalculateLongRunDistance(int weekNumber, TrainingPhase phase, decimal weeklyMileage)
+    private (decimal distance, decimal percent) CalculateLongRunDistance(
+        int weekNumber,
+        TrainingPhase phase,
+        decimal weeklyMileage)
     {
         if (phase == TrainingPhase.Race)
         {
-            return 42.2m; // Marathon distance
+            return (42.2m, 0m); // Marathon distance
         }
 
         // Long run is typically 30-40% of weekly volume
@@ -315,17 +364,17 @@ public class MarathonPlanGenerator
                 // Cap at 32km during build for most levels except elite
                 var calculatedDistanceBuild = weeklyMileage * longRunPercent;
 
-                return _parameters.RunnerLevel == ExperienceLevel.Elite
+                return (_parameters.RunnerLevel == ExperienceLevel.Elite
                     ? Math.Min(calculatedDistanceBuild, 35m)
-                    : Math.Min(calculatedDistanceBuild, 32m);
+                    : Math.Min(calculatedDistanceBuild, 32m), longRunPercent);
             case TrainingPhase.Peak:
                 longRunPercent = 0.4m;
                 // Cap at 32km during build for most levels except elite
                 var calculatedDistancePeak = weeklyMileage * longRunPercent;
 
-                return _parameters.RunnerLevel == ExperienceLevel.Elite
+                return (_parameters.RunnerLevel == ExperienceLevel.Elite
                     ? Math.Min(calculatedDistancePeak, 35m)
-                    : Math.Min(calculatedDistancePeak, 32m);
+                    : Math.Min(calculatedDistancePeak, 32m), longRunPercent);
             case TrainingPhase.Taper:
                 // During taper, long run reduces more significantly
                 int weeksToRace = _parameters.PlanWeeks - weekNumber + 1;
@@ -334,6 +383,64 @@ public class MarathonPlanGenerator
                 break;
         }
 
-        return weeklyMileage * longRunPercent;
+        return (weeklyMileage * longRunPercent, longRunPercent);
+    }
+
+    private (Workout mediumRun, DayOfWeek mediumRunDay) MediumRun(
+        (int week, decimal weeklyMileage, TrainingPhase trainingPhase) weeklyMileage,
+        TrainingPaces trainingPaces,
+        DayOfWeek[] nonQualityDays)
+    {
+        var mediumRunDistance = CalculateMediumRunDistance(
+            weeklyMileage.week,
+            weeklyMileage.trainingPhase,
+            weeklyMileage.weeklyMileage
+        );
+
+        var mediumRun = Workout.CreateMediumRun(mediumRunDistance, trainingPaces.EasyPace);
+
+        var mediumRunDay = nonQualityDays.Contains(DayOfWeek.Wednesday)
+            ? DayOfWeek.Wednesday
+            : nonQualityDays.FirstOrDefault();
+
+        return (mediumRun, mediumRunDay);
+    }
+
+    private decimal CalculateMediumRunDistance(int weekNumber, TrainingPhase phase, decimal weeklyMileage)
+    {
+        // Long run is typically 20% of weekly volume
+        // Starting point
+
+        // switch (phase)
+        // {
+        //     case TrainingPhase.Base:
+        //         mediumRunPercent = 0.32m;
+        //
+        //         break;
+        //     case TrainingPhase.Build:
+        //         mediumRunPercent = 0.36m;
+        //         // Cap at 32km during build for most levels except elite
+        //         var calculatedDistanceBuild = weeklyMileage * mediumRunPercent;
+        //
+        //         return _parameters.RunnerLevel == ExperienceLevel.Elite
+        //             ? Math.Min(calculatedDistanceBuild, 35m)
+        //             : Math.Min(calculatedDistanceBuild, 32m);
+        //     case TrainingPhase.Peak:
+        //         mediumRunPercent = 0.4m;
+        //         // Cap at 32km during build for most levels except elite
+        //         var calculatedDistancePeak = weeklyMileage * mediumRunPercent;
+        //
+        //         return _parameters.RunnerLevel == ExperienceLevel.Elite
+        //             ? Math.Min(calculatedDistancePeak, 35m)
+        //             : Math.Min(calculatedDistancePeak, 32m);
+        //     case TrainingPhase.Taper:
+        //         // During taper, long run reduces more significantly
+        //         int weeksToRace = _parameters.PlanWeeks - weekNumber + 1;
+        //         mediumRunPercent = 0.3m - (0.05m * (_parameters.TaperWeeks - weeksToRace));
+        //
+        //         break;
+        // }
+
+        return weeklyMileage * MediumRunPercent;
     }
 }
