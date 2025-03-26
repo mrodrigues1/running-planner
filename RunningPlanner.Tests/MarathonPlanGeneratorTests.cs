@@ -15,6 +15,8 @@ public class MarathonPlanGeneratorTests
             GoalTime = TimeSpan.FromHours(3).Add(TimeSpan.FromMinutes(59)),
             WeeklyRunningDays =
                 [DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Friday, DayOfWeek.Saturday],
+            // QualityWorkoutDaysTest = [DayOfWeek.Monday, DayOfWeek.Wednesday, DayOfWeek.Friday],
+            IncludeMidWeekMediumRun = true,
             CurrentWeeklyMileage = 45m,
             PeakWeeklyMileage = 80m,
             RunnerLevel = ExperienceLevel.Intermediate,
