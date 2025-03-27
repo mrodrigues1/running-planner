@@ -86,21 +86,21 @@ public class MarathonPlanGenerator
                 _parameters.RecentRaceResult.Time);
         }
 
-        foreach (var weeklyMileage in weeklyMileages)
+        foreach (var weeklyPlan in weeklyMileages)
         {
             var workouts = new Dictionary<DayOfWeek, Workout>();
 
             var longRun = CalculateLongRunDistance(
-                weeklyMileage.week,
-                weeklyMileage.trainingPhase,
-                weeklyMileage.weeklyMileage);
+                weeklyPlan.week,
+                weeklyPlan.trainingPhase,
+                weeklyPlan.weeklyMileage);
 
             var nonQualityDays = _parameters.WeeklyRunningDays
                 .Except(_parameters.QualityWorkoutDays)
                 .Except([_parameters.LongRunDay])
                 .ToArray();
 
-            if (weeklyMileage.trainingPhase is not TrainingPhase.Race)
+            if (weeklyPlan.trainingPhase is not TrainingPhase.Race)
             {
                 var longRunWorkout = Workout.CreateLongRun(longRun.distance, trainingPaces.EasyPace);
 
@@ -110,7 +110,7 @@ public class MarathonPlanGenerator
 
                 if (_parameters.IncludeMidWeekMediumRun)
                 {
-                    var (mediumRun, mediumRunDay) = MediumRun(weeklyMileage, trainingPaces, nonQualityDays);
+                    var (mediumRun, mediumRunDay) = MediumRun(weeklyPlan, trainingPaces, nonQualityDays);
 
                     mediumRunDistance = mediumRun.TotalDistance.DistanceValue;
 
@@ -118,16 +118,21 @@ public class MarathonPlanGenerator
                 }
 
                 var remainingPercent = 1m - longRun.percent - MediumRunPercent;
-                var remainingMileage = weeklyMileage.weeklyMileage - longRun.distance - mediumRunDistance;
+                var remainingMileage = weeklyPlan.weeklyMileage - longRun.distance - mediumRunDistance;
 
                 if (_parameters.QualityWorkoutDays.Length != 0)
                 {
                     var qualityWorkoutPercent = 0.4m;
                     var qualityWorkoutDistance = remainingMileage * qualityWorkoutPercent;
 
+                    var random = new Random();
+
                     foreach (var qualityWorkoutDay in _parameters.QualityWorkoutDays)
                     {
-                        switch (weeklyMileage.trainingPhase)
+                        var workoutType =
+                            _parameters.PreferredWorkoutTypes[random.Next(_parameters.PreferredWorkoutTypes.Length)];
+
+                        switch (weeklyPlan.trainingPhase)
                         {
                             case TrainingPhase.Base:
                                 break;
@@ -157,7 +162,7 @@ public class MarathonPlanGenerator
                 workouts[raceDayOfWeek] = longRunWorkout;
 
                 var remainingRunningDays = 3;
-                var remainingMileage = weeklyMileage.weeklyMileage / remainingRunningDays;
+                var remainingMileage = weeklyPlan.weeklyMileage / remainingRunningDays;
 
                 var runningDays = _parameters.WeeklyRunningDays.Where(day => day != raceDayOfWeek).ToArray();
 
@@ -171,8 +176,8 @@ public class MarathonPlanGenerator
 
             trainingWeeks.Add(
                 TrainingWeek.Create(
-                    weekNumber: weeklyMileage.week,
-                    trainingPhase: weeklyMileage.trainingPhase,
+                    weekNumber: weeklyPlan.week,
+                    trainingPhase: weeklyPlan.trainingPhase,
                     monday: workouts.GetValueOrDefault(DayOfWeek.Monday),
                     tuesday: workouts.GetValueOrDefault(DayOfWeek.Tuesday),
                     wednesday: workouts.GetValueOrDefault(DayOfWeek.Wednesday),
