@@ -1,4 +1,4 @@
-﻿namespace RunningPlanner.Core;
+﻿namespace RunningPlanner.Core.Models;
 
 public enum RaceDistance
 {

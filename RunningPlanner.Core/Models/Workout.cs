@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using RunningPlanner.Core.Extensions;
 
 namespace RunningPlanner.Core.Models;
 
@@ -360,12 +361,13 @@ public record Workout
         // Total distance for intervals and recovery
         decimal intervalTotalDistance = repeats * (intervalDistance + recoveryDistance);
 
+        var currentWorkoutTotalDistance = warmupDistance +
+                                          intervalTotalDistance +
+                                          cooldownDistance +
+                                          (restBeforeStartIntervalDistance ?? 0.0m);
+
         // Additional easy distance if needed to match total
-        decimal remainingDistance = totalDistance -
-                                    (warmupDistance +
-                                     intervalTotalDistance +
-                                     cooldownDistance +
-                                     (restBeforeStartIntervalDistance ?? 0.0m));
+        decimal remainingDistance = currentWorkoutTotalDistance - totalDistance;
         decimal additionalEasyDistance = Math.Max(0, remainingDistance);
 
         var warmUpStep = SimpleStep.CreateWithKilometers(
@@ -448,8 +450,10 @@ public record Workout
 
         var tempoDistance = CalculateDistanceBasedOnDuration(TimeSpan.FromMinutes(tempoMinutes), tempoPaceRange);
 
+        var currentWorkoutTotalDistance = warmupDistance + tempoDistance + cooldownDistance;
+
         // Additional easy distance if needed to match total
-        decimal remainingDistance = totalDistance - (warmupDistance + tempoDistance + cooldownDistance);
+        decimal remainingDistance = totalDistance - currentWorkoutTotalDistance;
         decimal additionalEasyDistance = Math.Max(0, remainingDistance);
 
         var warmUpStep = SimpleStep.CreateWithKilometers(
@@ -481,24 +485,21 @@ public record Workout
     /// Creates a stride workout that incorporates strides with defined pace ranges and recovery segments,
     /// along with warm-up and cool-down phases.
     /// </summary>
-    /// <param name="distance">The total distance of the workout in kilometers.</param>
+    /// <param name="totalDistance">The total distance of the workout in kilometers.</param>
     /// <param name="strideCount">The number of strides to include in the workout.</param>
+    /// <param name="strideDistanceMeters"></param>
     /// <param name="easyPaceRange">The pace range for the easy run sections of the workout.</param>
     /// <param name="strideRange">The pace range for the strides.</param>
     /// <param name="recoveryPaceRange">The pace range for the recovery sections between strides.</param>
     /// <returns>A stride workout object with strides integrated into the workout flow.</returns>
     public static Workout CreateStrideWorkout(
-        decimal distance,
+        decimal totalDistance,
         int strideCount,
+        decimal strideDistanceMeters,
         (TimeSpan min, TimeSpan max) easyPaceRange,
         (TimeSpan min, TimeSpan max) strideRange,
         (TimeSpan min, TimeSpan max) recoveryPaceRange)
     {
-        var runStep = SimpleStep.CreateWithKilometers(
-            StepType.Run,
-            distance,
-            IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max));
-
         var steps = new List<SimpleStep>();
 
         for (var i = 0; i < strideCount; i++)
@@ -506,13 +507,13 @@ public record Workout
             var runSimpleStep = SimpleStep
                 .CreateWithKilometers(
                     StepType.Run,
-                    0.1m,
+                    strideDistanceMeters / 1000m,
                     IntensityTarget.Pace(strideRange.min, strideRange.max));
 
             var restSimpleStep = SimpleStep
                 .CreateWithKilometers(
                     StepType.Recover,
-                    0.1m,
+                    strideDistanceMeters / 1000m,
                     IntensityTarget.Pace(recoveryPaceRange.min, recoveryPaceRange.max));
 
             steps.Add(runSimpleStep);
@@ -522,6 +523,11 @@ public record Workout
         var totalRepeats = strideCount * 2;
 
         var repeatStep = Repeat.Create(totalRepeats, steps);
+        
+        var runStep = SimpleStep.CreateWithKilometers(
+            StepType.Run,
+            totalDistance - repeatStep.Steps.StepsDistance(),
+            IntensityTarget.Pace(easyPaceRange.min, easyPaceRange.max));
 
         return Create(
             WorkoutType.EasyRunWithStrides,
@@ -533,13 +539,16 @@ public record Workout
     }
 
     /// <summary>
-    /// Creates a threshold workout with specified distances, paces, and warmup/cooldown segments.
+    /// Creates a threshold workout consisting of a warmup, tempo section, and cooldown,
+    /// optionally including additional easy distance to match the total distance.
     /// </summary>
-    /// <param name="thresholdDistance">The distance for the threshold segment.</param>
-    /// <param name="totalDistance">The total distance of the workout, including warmup, threshold, and cooldown segments.</param>
-    /// <param name="easyPaceRange">The range of pace for the warmup and cooldown segments.</param>
-    /// <param name="thresholdPaceRange">The range of pace for the threshold segment.</param>
-    /// <returns>A threshold workout object with the configured steps and type.</returns>
+    /// <param name="thresholdDistance">The distance of the tempo (threshold) section of the workout.</param>
+    /// <param name="totalDistance">The total distance of the workout.</param>
+    /// <param name="easyPaceRange">The pace range to be used for the warmup, cooldown, and additional easy sections.</param>
+    /// <param name="thresholdPaceRange">The pace range to be used for the threshold section of the workout.</param>
+    /// <param name="warmupDistance">An optional parameter specifying the distance of the warmup section. Defaults to 2.0 kilometers.</param>
+    /// <param name="cooldownDistance">An optional parameter specifying the distance of the cooldown section. Defaults to 2.0 kilometers.</param>
+    /// <returns>A new instance of a threshold workout comprised of the specified sections and parameters.</returns>
     public static Workout CreateThresholdWorkout(
         decimal thresholdDistance,
         decimal totalDistance,
@@ -553,9 +562,10 @@ public record Workout
         // - Tempo section at faster pace (using the distance specified)
         // - Cooldown as specified (default 2km)
 
-
+        var currentWorkoutDistance = warmupDistance + thresholdDistance + cooldownDistance;
+        
         // Additional easy distance if needed to match total
-        decimal remainingDistance = totalDistance - (warmupDistance + thresholdDistance + cooldownDistance);
+        decimal remainingDistance = totalDistance - currentWorkoutDistance;
         decimal additionalEasyDistance = Math.Max(0, remainingDistance);
 
         var warmUpStep = SimpleStep.CreateWithKilometers(
@@ -651,7 +661,7 @@ public record Workout
         // Calculate the distance covered during the tempo portion
         decimal distance = minutes / avgMinutesPerKm;
 
-        return distance;
+        return Math.Round(distance, 2, MidpointRounding.AwayFromZero);
     }
 }
 
