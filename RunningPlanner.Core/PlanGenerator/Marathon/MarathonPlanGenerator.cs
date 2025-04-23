@@ -36,6 +36,10 @@ public class MarathonPlanGeneratorParameters
 public class MarathonPlanGenerator
 {
     private const decimal MediumRunPercent = 0.20m;
+    private const int MinimumMarathonPlanWeeks = 12;
+    private const int MaximumMarathonPlanWeeks = 24;
+    private const int MinimumWeekRunningDays = 4;
+    private const int MaximumQualityWorkoutDays = 3;
     private readonly MarathonPlanGeneratorParameters _parameters;
 
     public MarathonPlanGenerator(MarathonPlanGeneratorParameters parameters)
@@ -49,27 +53,27 @@ public class MarathonPlanGenerator
     {
         var planWeeks = _parameters.PlanWeeks;
 
-        if (planWeeks is < 12 or > 24)
+        if (planWeeks is < MinimumMarathonPlanWeeks or > MaximumMarathonPlanWeeks)
         {
             throw new Exception(
-                $"Plan weeks must be between 12 and 24, but was {planWeeks}.");
+                $"Plan weeks must be between {MinimumMarathonPlanWeeks} and {MaximumMarathonPlanWeeks}, but was {planWeeks}.");
         }
 
-        if (_parameters.WeeklyRunningDays.Length < 3)
+        if (_parameters.WeeklyRunningDays.Length < MinimumWeekRunningDays)
         {
             throw new Exception(
                 $"At least 3 weekly running days must be specified, but only {_parameters.WeeklyRunningDays.Length} were specified.");
         }
 
-        // if (_parameters.QualityWorkoutDays.Length > 3)
-        // {
-        //     throw new Exception(
-        //         $"At most 2 quality workout days can be specified, but {_parameters.QualityWorkoutDays.Length} were specified.");
-        // }
+        if (_parameters.QualityWorkoutDays.Length > MaximumQualityWorkoutDays)
+        {
+            throw new Exception(
+                $"At most 2 quality workout days can be specified, but {_parameters.QualityWorkoutDays.Length} were specified.");
+        }
 
         var phaseWeeks = GeneratePhaseWeeks(planWeeks);
 
-        var weeklyMileages = CalculateWeeklyMileage(phaseWeeks);
+        var weeklyMileages = CalculateWeeklyMileages(phaseWeeks);
 
         List<TrainingWeek> trainingWeeks = [];
 
@@ -132,46 +136,14 @@ public class MarathonPlanGenerator
                     weekRunsDistribution.Add(new RunDistribution(workoutType, easyRunPercent, day));
                 }
 
-                foreach (var runDistribution in weekRunsDistribution)
-                {
-                    var workoutType = runDistribution.WorkoutType;
-                    var dayOfWeek = runDistribution.DayOfWeek;
+                CreateWorkoutsBasedOnDistribution(
+                    weekRunsDistribution,
+                    weeklyPlan,
+                    trainingPaces,
+                    workouts,
+                    longRun);
 
-                    var workoutGenerator = new WorkoutGenerator(
-                        weeklyPlan.TrainingPhase,
-                        _parameters.RunnerLevel,
-                        trainingPaces,
-                        weeklyPlan.Week,
-                        weeklyPlan.PhaseWeek);
-
-                    switch (workoutType)
-                    {
-                        case WorkoutType.Race:
-                            workouts[dayOfWeek] = workoutGenerator.GenerateWorkout(workoutType, longRun.distance);
-
-                            break;
-                        default:
-                            var workoutPercent = runDistribution.Percentage;
-                            var workoutDistance = workoutPercent * weeklyPlan.WeeklyMileage;
-                            workouts[dayOfWeek] = workoutGenerator.GenerateWorkout(workoutType, workoutDistance);
-
-                            break;
-                    }
-                }
-
-                trainingWeeks.Add(
-                    TrainingWeek.Create(
-                        weekNumber: weeklyPlan.Week,
-                        trainingPhase: weeklyPlan.TrainingPhase,
-                        monday: workouts.GetValueOrDefault(DayOfWeek.Monday),
-                        tuesday: workouts.GetValueOrDefault(DayOfWeek.Tuesday),
-                        wednesday: workouts.GetValueOrDefault(DayOfWeek.Wednesday),
-                        thursday: workouts.GetValueOrDefault(DayOfWeek.Thursday),
-                        friday: workouts.GetValueOrDefault(DayOfWeek.Friday),
-                        saturday: workouts.GetValueOrDefault(DayOfWeek.Saturday),
-                        sunday: workouts.GetValueOrDefault(DayOfWeek.Sunday)
-                    )
-                );
+                AddTrainingWeekToSchedule(trainingWeeks, weeklyPlan, workouts);
 
                 continue;
             }
@@ -219,40 +191,65 @@ public class MarathonPlanGenerator
                 }
             }
 
-            foreach (var runDistribution in weekRunsDistribution)
-            {
-                var workoutType = runDistribution.WorkoutType;
-                var workoutPercent = runDistribution.Percentage;
-                var dayOfWeek = runDistribution.DayOfWeek;
-                var workoutDistance = workoutPercent * weeklyPlan.WeeklyMileage;
+            CreateWorkoutsBasedOnDistribution(
+                weekRunsDistribution,
+                weeklyPlan,
+                trainingPaces,
+                workouts,
+                longRun);
 
-                var workout = new WorkoutGenerator(
-                        weeklyPlan.TrainingPhase,
-                        _parameters.RunnerLevel,
-                        trainingPaces,
-                        weeklyPlan.Week,
-                        weeklyPlan.PhaseWeek)
-                    .GenerateWorkout(workoutType, workoutDistance);
-
-                workouts[dayOfWeek] = workout;
-            }
-
-            trainingWeeks.Add(
-                TrainingWeek.Create(
-                    weekNumber: weeklyPlan.Week,
-                    trainingPhase: weeklyPlan.TrainingPhase,
-                    monday: workouts.GetValueOrDefault(DayOfWeek.Monday),
-                    tuesday: workouts.GetValueOrDefault(DayOfWeek.Tuesday),
-                    wednesday: workouts.GetValueOrDefault(DayOfWeek.Wednesday),
-                    thursday: workouts.GetValueOrDefault(DayOfWeek.Thursday),
-                    friday: workouts.GetValueOrDefault(DayOfWeek.Friday),
-                    saturday: workouts.GetValueOrDefault(DayOfWeek.Saturday),
-                    sunday: workouts.GetValueOrDefault(DayOfWeek.Sunday)
-                )
-            );
+            AddTrainingWeekToSchedule(trainingWeeks, weeklyPlan, workouts);
         }
 
         return TrainingPlan.Create(trainingWeeks);
+    }
+
+    private static void AddTrainingWeekToSchedule(
+        List<TrainingWeek> trainingWeeks,
+        WeeklyMileageData weeklyPlan,
+        Dictionary<DayOfWeek, Workout> workouts)
+    {
+        trainingWeeks.Add(
+            TrainingWeek.Create(
+                weekNumber: weeklyPlan.Week,
+                trainingPhase: weeklyPlan.TrainingPhase,
+                monday: workouts.GetValueOrDefault(DayOfWeek.Monday),
+                tuesday: workouts.GetValueOrDefault(DayOfWeek.Tuesday),
+                wednesday: workouts.GetValueOrDefault(DayOfWeek.Wednesday),
+                thursday: workouts.GetValueOrDefault(DayOfWeek.Thursday),
+                friday: workouts.GetValueOrDefault(DayOfWeek.Friday),
+                saturday: workouts.GetValueOrDefault(DayOfWeek.Saturday),
+                sunday: workouts.GetValueOrDefault(DayOfWeek.Sunday)
+            )
+        );
+    }
+
+    private void CreateWorkoutsBasedOnDistribution(
+        List<RunDistribution> weekRunsDistribution,
+        WeeklyMileageData weeklyPlan,
+        TrainingPaces trainingPaces,
+        Dictionary<DayOfWeek, Workout> workouts,
+        (decimal distance, decimal percent) longRun)
+    {
+        foreach (var runDistribution in weekRunsDistribution)
+        {
+            var workoutType = runDistribution.WorkoutType;
+            var dayOfWeek = runDistribution.DayOfWeek;
+
+            var workoutGenerator = new WorkoutGenerator(
+                weeklyPlan.TrainingPhase,
+                _parameters.RunnerLevel,
+                trainingPaces,
+                weeklyPlan.Week,
+                weeklyPlan.PhaseWeek);
+
+            var workoutPercent = runDistribution.Percentage;
+            var workoutDistance = workoutPercent * weeklyPlan.WeeklyMileage;
+
+            workouts[dayOfWeek] = workoutType is WorkoutType.Race
+                ? workoutGenerator.GenerateWorkout(workoutType, longRun.distance)
+                : workoutGenerator.GenerateWorkout(workoutType, workoutDistance);
+        }
     }
 
     private Dictionary<TrainingPhase, int> GeneratePhaseWeeks(int planWeeks)
@@ -273,7 +270,7 @@ public class MarathonPlanGenerator
         return phaseDistribution.ToDictionary();
     }
 
-    private List<WeeklyMileageData> CalculateWeeklyMileage(Dictionary<TrainingPhase, int> phaseWeeks)
+    private List<WeeklyMileageData> CalculateWeeklyMileages(Dictionary<TrainingPhase, int> phaseWeeks)
     {
         // Extract constants for clarity
         const decimal BASE_TARGET_PERCENTAGE = 0.7m;

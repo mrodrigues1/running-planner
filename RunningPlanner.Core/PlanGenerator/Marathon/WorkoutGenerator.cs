@@ -11,6 +11,8 @@ public class WorkoutGenerator
     private readonly int _weekNumber;
     private readonly int _phaseWeekNumber; // Current week within the phase
     private const decimal StrideDistanceMeters = 100m;
+    private const decimal HillUpDistance = 400m;
+    private const decimal HillDownDistance = 400m;
 
     public WorkoutGenerator(
         TrainingPhase phase,
@@ -85,9 +87,7 @@ public class WorkoutGenerator
             tempoMinutes,
             totalDistance,
             _paces.EasyPace,
-            _paces.ThresholdPace,
-            CalculateWarmupDistance(totalDistance),
-            CalculateCooldownDistance(totalDistance));
+            _paces.ThresholdPace);
     }
 
     private Workout GenerateIntervals(decimal totalDistance)
@@ -139,29 +139,23 @@ public class WorkoutGenerator
         // Calculate recovery distance based on interval distance and phase
         int recoveryMeters = CalculateRecoveryMeters(meters);
 
-        var currentTotalDistance = repeats * (meters + recoveryMeters) / 1000m;
-        var remainingDistance = totalDistance - currentTotalDistance;
-        var warmupDistance = 0m;
-        var cooldownDistance = 0m;
+        var currentWorkoutRepeatsTotalDistance = repeats * (meters + recoveryMeters) / 1000m;
+        var remainingDistance = totalDistance - currentWorkoutRepeatsTotalDistance;
+        var warmupCooldownDistance = 0m;
 
         if (remainingDistance >= 2m)
         {
-            warmupDistance = remainingDistance / 2;
-            cooldownDistance = remainingDistance / 2;
+            warmupCooldownDistance = remainingDistance / 2;
         }
         else
         {
-            for (int i = repeats - 1; i > 0; i--)
+            while (remainingDistance < 2m)
             {
-                var currentTotalDistance2 = i * (meters + recoveryMeters) / 1000m;
-                var remainingDistance2 = totalDistance - currentTotalDistance2;
+                currentWorkoutRepeatsTotalDistance = repeats * (meters + recoveryMeters) / 1000m;
+                remainingDistance = totalDistance - currentWorkoutRepeatsTotalDistance;
+                warmupCooldownDistance = remainingDistance / 2;
 
-                if (remainingDistance2 < 2m) continue;
-
-                warmupDistance = remainingDistance2 / 2;
-                cooldownDistance = remainingDistance2 / 2;
-
-                break;
+                repeats--;
             }
         }
 
@@ -173,8 +167,8 @@ public class WorkoutGenerator
             _paces.EasyPace,
             _paces.IntervalPace,
             _paces.EasyPace,
-            warmupDistance,
-            cooldownDistance);
+            warmupCooldownDistance,
+            warmupCooldownDistance);
     }
 
     private Workout GenerateHillRepeats(decimal totalDistance)
@@ -213,19 +207,41 @@ public class WorkoutGenerator
 
         repeats = Math.Min(repeats, maxRepeats);
 
+        var currentRepeatsTotalDistance = repeats * (HillUpDistance + HillDownDistance) / 1000m;
+        var remainingDistance = totalDistance - currentRepeatsTotalDistance;
+        var warmupCooldownDistance = 0m;
+
+        if (remainingDistance >= 2m)
+        {
+            warmupCooldownDistance = remainingDistance / 2;
+        }
+        else
+        {
+            while (remainingDistance < 2m)
+            {
+                currentRepeatsTotalDistance = repeats * (HillUpDistance + HillDownDistance) / 1000m;
+                remainingDistance = totalDistance - currentRepeatsTotalDistance;
+                warmupCooldownDistance = remainingDistance / 2;
+
+                repeats--;
+            }
+        }
+
         return Workout.CreateHillRepeat(
             repeats,
             totalDistance,
             _paces.EasyPace,
             _paces.IntervalPace, // Use interval pace for hills
             _paces.EasyPace,
-            CalculateWarmupDistance(totalDistance),
-            CalculateCooldownDistance(totalDistance));
+            HillUpDistance,
+            HillDownDistance,
+            warmupCooldownDistance,
+            warmupCooldownDistance);
     }
 
     private Workout GenerateLongRun(decimal totalDistance)
     {
-        // Long runs should be at easy pace, focusing on distance
+        // Long runs should be at an easy pace, focusing on distance
         return Workout.CreateLongRun(totalDistance, _paces.EasyPace);
     }
 
@@ -259,7 +275,7 @@ public class WorkoutGenerator
 
         racePaceDistance = Math.Min(racePaceDistance, totalDistance * maxRacePacePercent);
 
-        // Create segments: warm up, race pace, cool down
+        // Create segments: warmup, race pace, cool down
         var warmupDistance = (totalDistance - racePaceDistance) * 0.5m;
         var cooldownDistance = totalDistance - racePaceDistance - warmupDistance;
 
@@ -321,24 +337,17 @@ public class WorkoutGenerator
         strides = Math.Min(strides, maxStrides);
 
         var strideDistancePlusRecovery = StrideDistanceMeters * 2;
-        
+
         var strideTotalDistance = strides * strideDistancePlusRecovery / 1000m;
-        
+
         var currentTotalDistance = totalDistance - strideTotalDistance;
 
-        if (currentTotalDistance < 0m)
+        while (currentTotalDistance < 0m)
         {
-            for (int i = strides - 1; i > 0; i--)
-            {
-                strideTotalDistance = i * strideDistancePlusRecovery / 1000m;
-                currentTotalDistance = totalDistance - strideTotalDistance;
+            strideTotalDistance = strides * strideDistancePlusRecovery / 1000m;
+            currentTotalDistance = totalDistance - strideTotalDistance;
 
-                if (currentTotalDistance > 0m)
-                {
-                    strides = i;
-                    break;
-                }
-            }
+            strides--;
         }
 
         return Workout.CreateStrideWorkout(
@@ -354,17 +363,6 @@ public class WorkoutGenerator
     {
         return Workout.CreateRace(totalDistance);
     }
-
-    // Helper methods
-    private decimal CalculateWarmupDistance(decimal totalDistance) => Math.Round(
-        totalDistance * 0.2m,
-        2,
-        MidpointRounding.AwayFromZero);
-
-    private decimal CalculateCooldownDistance(decimal totalDistance) => Math.Round(
-        totalDistance * 0.2m,
-        2,
-        MidpointRounding.AwayFromZero);
 
     private int CalculateRecoveryMeters(int intervalMeters)
     {
