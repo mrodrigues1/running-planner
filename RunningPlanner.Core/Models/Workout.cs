@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.ComponentModel;
+using System.Globalization;
 using RunningPlanner.Core.Extensions;
 
 namespace RunningPlanner.Core.Models;
@@ -77,17 +78,19 @@ public record Workout
     {
         if (Type is WorkoutType.Rest)
         {
-            return Type.ToString();
+            return Type.GetDescription();
         }
 
         var workoutName = new List<string>();
 
-        workoutName.Add(Type.ToString());
+        workoutName.Add(Type.GetDescription());
 
-        var metric = Steps
+        var steps = Steps
             .SelectMany<Step, SimpleStep>(step => step is SimpleStep simpleStep
                 ? [simpleStep]
-                : (step as Repeat)?.Steps ?? [])
+                : (step as Repeat)?.Steps ?? []);
+
+        var metric = steps
             .Select(x => x.Duration is Duration.DistanceDuration distanceDuration
                 ? distanceDuration.Metric
                 : DistanceMetric.Invalid)
@@ -95,6 +98,60 @@ public record Workout
 
         workoutName.Add(
             $"{TotalDistance.DistanceValue.ToString(CultureInfo.InvariantCulture)} {metric.ToString() ?? "km"}");
+
+        if (Type is WorkoutType.EasyRun
+            or WorkoutType.MediumRun
+            or WorkoutType.LongRun
+            or WorkoutType.TempoRun
+            or WorkoutType.Threshold)
+        {
+            workoutName.Add(steps.First().IntensityTarget.PaceFormatted());
+        }
+        else if (Type is WorkoutType.HillRepeat
+                 or WorkoutType.Intervals
+                 or WorkoutType.Repetition
+                 or WorkoutType.TempoRunRepeat
+                 or WorkoutType.ThresholdRepeat)
+        {
+            var stepQuantity = steps.Count() / 2;
+            var stepQuantityText = $"{stepQuantity}";
+
+            var stepRun = steps.First(x => x.Type == StepType.Run);
+
+            var stepRunText = stepRun.TotalDistance.DistanceValue >= 1m
+                ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km"
+                : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m";
+
+            var stepRecover = steps.First(x => x.Type is StepType.Walk or StepType.Recover or StepType.Rest);
+
+            var stepRecoverText = stepRecover.TotalDistance.DistanceValue >= 1m
+                ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km {stepRecover.Type.GetDescription()}"
+                : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m {stepRecover.Type.GetDescription()}";
+
+            workoutName.Add(
+                $"{stepQuantityText} x ({stepRunText}{stepRun.IntensityTarget.PaceFormatted()} + {stepRecoverText})");
+        }
+        else if (Type is WorkoutType.EasyRunWithStrides)
+        {
+            var onlyStrideSteps = steps.Skip(1).Take(steps.Count());
+            var stepQuantity = onlyStrideSteps.Count() / 2;
+            var stepQuantityText = $"{stepQuantity}";
+
+            var stepRun = onlyStrideSteps.First(x => x.Type == StepType.Run);
+
+            var stepRunText = stepRun.TotalDistance.DistanceValue >= 1m
+                ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km"
+                : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m";
+
+            var stepRecover = onlyStrideSteps.First(x => x.Type is StepType.Walk or StepType.Recover or StepType.Rest);
+
+            var stepRecoverText = stepRecover.TotalDistance.DistanceValue >= 1m
+                ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km {stepRecover.Type.GetDescription()}"
+                : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m {stepRecover.Type.GetDescription()}";
+
+            workoutName.Add(
+                $"{stepQuantityText} x ({stepRunText}{stepRun.IntensityTarget.PaceFormatted()} + {stepRecoverText})");
+        }
 
         return string.Join(" - ", workoutName);
     }
@@ -569,7 +626,7 @@ public record Workout
             }
 
             // Create a repeat for the walk/run intervals
-            var totalRepeats = runWalkInterval.RepeatCount * 2; // *2 because each interval has 2 steps (walk + run)
+            var totalRepeats = runWalkInterval.RepeatCount * 2; // *2 because each interval has 2 steps (walk plus run)
 
             steps.Add(Repeat.Create(totalRepeats, simpleSteps));
         }
@@ -601,21 +658,21 @@ public record Workout
 public enum WorkoutType
 {
     Invalid,
-    Cross,
-    Rest,
-    WalkRun,
-    EasyRun,
-    EasyRunWithStrides,
-    MediumRun,
-    Repetition,
-    Intervals,
-    Threshold,
-    ThresholdRepeat,
-    TempoRun,
-    TempoRunRepeat,
-    Fartlek,
-    HillRepeat,
-    RacePace,
-    LongRun,
-    Race
+    [Description("Cross Training")] Cross,
+    [Description("Rest Day")] Rest,
+    [Description("Walk/Run Intervals")] WalkRun,
+    [Description("Easy Run")] EasyRun,
+    [Description("Easy Run w/ Strides")] EasyRunWithStrides,
+    [Description("Mid Distance Run")] MediumRun,
+    [Description("Repetition")] Repetition,
+    [Description("Intervals")] Intervals,
+    [Description("Threshold")] Threshold,
+    [Description("Threshold Intervals")] ThresholdRepeat,
+    [Description("Tempo Run")] TempoRun,
+    [Description("Tempo Run Intervals")] TempoRunRepeat,
+    [Description("Fartlek")] Fartlek,
+    [Description("Hill Repeat")] HillRepeat,
+    [Description("Race Pace")] RacePace,
+    [Description("Long Run")] LongRun,
+    [Description("Race")] Race
 }
