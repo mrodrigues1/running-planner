@@ -97,60 +97,79 @@ public record Workout
             .FirstOrDefault();
 
         workoutName.Add(
-            $"{TotalDistance.DistanceValue.ToString(CultureInfo.InvariantCulture)} {metric.ToString() ?? "km"}");
+            $"{TotalDistance.DistanceValue.ToString(CultureInfo.InvariantCulture)} {(metric is DistanceMetric.Kilometers ? "km" : metric.ToString())}");
 
-        if (Type is WorkoutType.EasyRun
-            or WorkoutType.MediumRun
-            or WorkoutType.LongRun
-            or WorkoutType.TempoRun
-            or WorkoutType.Threshold)
+        switch (Type)
         {
-            workoutName.Add(steps.First().IntensityTarget.PaceFormatted());
-        }
-        else if (Type is WorkoutType.HillRepeat
-                 or WorkoutType.Intervals
-                 or WorkoutType.Repetition
-                 or WorkoutType.TempoRunRepeat
-                 or WorkoutType.ThresholdRepeat)
-        {
-            var stepQuantity = steps.Count() / 2;
-            var stepQuantityText = $"{stepQuantity}";
+            case WorkoutType.EasyRun
+                or WorkoutType.MediumRun
+                or WorkoutType.LongRun:
+                workoutName.Add(steps.First().IntensityTarget.PaceFormatted());
 
-            var stepRun = steps.First(x => x.Type == StepType.Run);
+                break;
+            case WorkoutType.HillRepeat
+                or WorkoutType.Intervals
+                or WorkoutType.Repetition
+                or WorkoutType.TempoRunRepeat
+                or WorkoutType.ThresholdRepeat:
+            {
+                var stepQuantity = steps.Count() / 2;
+                var stepQuantityText = $"{stepQuantity}";
 
-            var stepRunText = stepRun.TotalDistance.DistanceValue >= 1m
-                ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km"
-                : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m";
+                var stepRun = steps.First(x => x.Type == StepType.Run);
 
-            var stepRecover = steps.First(x => x.Type is StepType.Walk or StepType.Recover or StepType.Rest);
+                var stepRunText = stepRun.TotalDistance.DistanceValue >= 1m
+                    ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km"
+                    : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m";
 
-            var stepRecoverText = stepRecover.TotalDistance.DistanceValue >= 1m
-                ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km {stepRecover.Type.GetDescription()}"
-                : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m {stepRecover.Type.GetDescription()}";
+                var stepRecover = steps.First(x => x.Type is StepType.Walk or StepType.Recover or StepType.Rest);
 
-            workoutName.Add(
-                $"{stepQuantityText} x ({stepRunText}{stepRun.IntensityTarget.PaceFormatted()} + {stepRecoverText})");
-        }
-        else if (Type is WorkoutType.EasyRunWithStrides)
-        {
-            var onlyStrideSteps = steps.Skip(1).Take(steps.Count());
-            var stepQuantity = onlyStrideSteps.Count() / 2;
-            var stepQuantityText = $"{stepQuantity}";
+                var stepRecoverText = stepRecover.TotalDistance.DistanceValue >= 1m
+                    ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km {stepRecover.Type.GetDescription()}"
+                    : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m {stepRecover.Type.GetDescription()}";
 
-            var stepRun = onlyStrideSteps.First(x => x.Type == StepType.Run);
+                workoutName.Add(
+                    $"{stepQuantityText} x ({stepRunText}{stepRun.IntensityTarget.PaceFormatted()} + {stepRecoverText})");
 
-            var stepRunText = stepRun.TotalDistance.DistanceValue >= 1m
-                ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km"
-                : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m";
+                break;
+            }
+            case WorkoutType.TempoRun
+                or WorkoutType.Threshold:
+            {
+                var stepRun = steps.First(x => x.Type == StepType.Run);
 
-            var stepRecover = onlyStrideSteps.First(x => x.Type is StepType.Walk or StepType.Recover or StepType.Rest);
+                var stepRunText = stepRun.TotalDistance.DistanceValue >= 1m
+                    ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km"
+                    : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m";
 
-            var stepRecoverText = stepRecover.TotalDistance.DistanceValue >= 1m
-                ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km {stepRecover.Type.GetDescription()}"
-                : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m {stepRecover.Type.GetDescription()}";
+                workoutName.Add($"{stepRunText}{stepRun.IntensityTarget.PaceFormatted()}");
 
-            workoutName.Add(
-                $"{stepQuantityText} x ({stepRunText}{stepRun.IntensityTarget.PaceFormatted()} + {stepRecoverText})");
+                break;
+            }
+            case WorkoutType.EasyRunWithStrides:
+            {
+                var onlyStrideSteps = steps.Skip(1).Take(steps.Count());
+                var stepQuantity = onlyStrideSteps.Count() / 2;
+                var stepQuantityText = $"{stepQuantity}";
+
+                var stepRun = onlyStrideSteps.First(x => x.Type == StepType.Run);
+
+                var stepRunText = stepRun.TotalDistance.DistanceValue >= 1m
+                    ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km"
+                    : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m";
+
+                var stepRecover =
+                    onlyStrideSteps.First(x => x.Type is StepType.Walk or StepType.Recover or StepType.Rest);
+
+                var stepRecoverText = stepRecover.TotalDistance.DistanceValue >= 1m
+                    ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km {stepRecover.Type.GetDescription()}"
+                    : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m {stepRecover.Type.GetDescription()}";
+
+                workoutName.Add(
+                    $"{stepQuantityText} x ({stepRunText}{stepRun.IntensityTarget.PaceFormatted()} + {stepRecoverText})");
+
+                break;
+            }
         }
 
         return string.Join(" - ", workoutName);
