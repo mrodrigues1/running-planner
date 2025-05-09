@@ -11,18 +11,25 @@ public abstract record IntensityTarget
     public static IntensityTarget None() => new NoTargetIntensity();
     public static IntensityTarget Pace(TimeSpan min, TimeSpan max) => new PaceIntensity(min, max);
 
+    public abstract string PaceFormatted();
+
     // Concrete implementations
     public sealed record NoTargetIntensity : IntensityTarget
     {
         internal NoTargetIntensity()
         {
         }
+
+        public override string PaceFormatted()
+        {
+            return string.Empty;
+        }
     }
 
     public sealed record PaceIntensity : IntensityTarget
     {
-        public TimeSpan Min { get; }
-        public TimeSpan Max { get; }
+        private TimeSpan Min { get; }
+        private TimeSpan Max { get; }
         public TimeSpan Average => CalculateAverage();
 
         internal PaceIntensity(TimeSpan min, TimeSpan max)
@@ -64,6 +71,14 @@ public abstract record IntensityTarget
             }
 
             return TimeSpan.FromTicks(mean);
+        }
+
+        public override string PaceFormatted()
+        {
+            var minPace = Min.Minutes + ":" + Min.Seconds;
+            var maxPace = Max.Minutes + ":" + Max.Seconds;
+            
+            return $"@{minPace}~{maxPace} min/km";
         }
     }
 }
