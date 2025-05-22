@@ -1,13 +1,13 @@
 ﻿using RunningPlanner.Core.Models;
-using RunningPlanner.Core.WorkoutStrategies;
 
-namespace RunningPlanner.Core.PlanGenerator;
+namespace RunningPlanner.Core.WorkoutStrategies;
 
 public class WorkoutGenerator
 {
     private readonly Dictionary<WorkoutType, IWorkoutStrategy> _strategies =
         new()
         {
+            {WorkoutType.EasyRun, new EasyRunStrategy()},
             {WorkoutType.TempoRun, new TempoRunStrategy()},
             // etc
         };
