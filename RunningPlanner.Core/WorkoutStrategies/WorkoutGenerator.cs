@@ -10,7 +10,8 @@ public class WorkoutGenerator
             {WorkoutType.EasyRun, new EasyRunStrategy()},
             {WorkoutType.LongRun, new LongRunStrategy()},
             {WorkoutType.TempoRun, new TempoRunStrategy()},
-            {WorkoutType.Intervals, new IntervalsStrategy()}
+            {WorkoutType.Intervals, new IntervalsStrategy()},
+            {WorkoutType.HillRepeat, new HillRepeatsStrategy()}
         };
 
     public Workout GenerateWorkout(WorkoutType type, WorkoutParameters parameters)
