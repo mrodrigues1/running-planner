@@ -11,6 +11,9 @@ public abstract record IntensityTarget
     public static IntensityTarget None() => new NoTargetIntensity();
     public static IntensityTarget Pace(TimeSpan min, TimeSpan max) => new PaceIntensity(min, max);
 
+    public static IntensityTarget Pace((TimeSpan Min, TimeSpan Max) paceInterval) =>
+        new PaceIntensity(paceInterval.Min, paceInterval.Max);
+
     public abstract string PaceFormatted();
 
     // Concrete implementations
@@ -77,7 +80,7 @@ public abstract record IntensityTarget
         {
             var minPace = Min.Minutes + ":" + Min.Seconds;
             var maxPace = Max.Minutes + ":" + Max.Seconds;
-            
+
             return $"@{minPace}~{maxPace} min/km";
         }
     }
