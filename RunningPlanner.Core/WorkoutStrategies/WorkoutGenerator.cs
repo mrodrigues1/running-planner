@@ -8,11 +8,9 @@ public class WorkoutGenerator
         new()
         {
             {WorkoutType.EasyRun, new EasyRunStrategy()},
-            {WorkoutType.TempoRun, new TempoRunStrategy()},
-            // etc
+            {WorkoutType.LongRun, new LongRunStrategy()},
+            {WorkoutType.TempoRun, new TempoRunStrategy()}
         };
-
-    // etc
 
     public Workout GenerateWorkout(WorkoutType type, WorkoutParameters parameters)
     {
