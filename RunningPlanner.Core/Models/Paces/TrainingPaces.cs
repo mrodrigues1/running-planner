@@ -5,12 +5,14 @@
 /// </summary>
 public class TrainingPaces
 {
-    public int Vdot { get; }
+    private int Vdot { get; }
     public (TimeSpan Min, TimeSpan Max) EasyPace { get; }
     public (TimeSpan Min, TimeSpan Max) MarathonPace { get; }
     public (TimeSpan Min, TimeSpan Max) ThresholdPace { get; }
     public (TimeSpan Min, TimeSpan Max) IntervalPace { get; }
     public (TimeSpan Min, TimeSpan Max) RepetitionPace { get; }
+    public (TimeSpan Min, TimeSpan Max) RecoveryPace { get; }
+    public (TimeSpan Min, TimeSpan Max) RestPace { get; }
 
     public TrainingPaces(
         int vdot,
@@ -26,6 +28,8 @@ public class TrainingPaces
         ThresholdPace = ConvertToPaceRange(thresholdPace);
         IntervalPace = ConvertToPaceRange(intervalPace);
         RepetitionPace = ConvertToPaceRange(repetitionPace);
+        RecoveryPace = CalculateRecoveryPace(EasyPace);
+        RestPace = CalculateRestPace(EasyPace);
     }
 
     private static (TimeSpan Min, TimeSpan Max) ParsePaceRange(string paceRange)
@@ -39,12 +43,22 @@ public class TrainingPaces
     {
         return TimeSpan.ParseExact(pace, @"m\:ss", null);
     }
-    
+
     private static (TimeSpan Min, TimeSpan Max) ConvertToPaceRange(string pace)
     {
         var paceTime = TimeSpan.ParseExact(pace, @"m\:ss", null);
 
         return (paceTime.Add(TimeSpan.FromSeconds(-5)), paceTime.Add(TimeSpan.FromSeconds(5)));
+    }
+
+    private (TimeSpan Min, TimeSpan Max) CalculateRecoveryPace((TimeSpan Min, TimeSpan Max) easyPace)
+    {
+        return (easyPace.Min.Add(TimeSpan.FromMinutes(1)), easyPace.Max.Add(TimeSpan.FromMinutes(3)));
+    }
+
+    private (TimeSpan Min, TimeSpan Max) CalculateRestPace((TimeSpan Min, TimeSpan Max) easyPace)
+    {
+        return (easyPace.Min.Add(TimeSpan.FromMinutes(3)), easyPace.Max.Add(TimeSpan.FromMinutes(5)));
     }
 
     /// <summary>
@@ -57,6 +71,8 @@ public class TrainingPaces
                $"Marathon Pace: {MarathonPace:m\\:ss} per km\n" +
                $"Threshold Pace: {ThresholdPace:m\\:ss} per km\n" +
                $"Interval Pace: {IntervalPace:m\\:ss} per km\n" +
-               $"Repetition Pace: {RepetitionPace:m\\:ss} per km";
+               $"Repetition Pace: {RepetitionPace:m\\:ss} per km\n" +
+               $"Recovery Pace: {RecoveryPace:m\\:ss} per km\n +" +
+               $"Rest Pace: {RestPace:m\\:ss} per km";
     }
 }
