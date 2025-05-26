@@ -11,7 +11,8 @@ public class WorkoutGenerator
             {WorkoutType.LongRun, new LongRunStrategy()},
             {WorkoutType.TempoRun, new TempoRunStrategy()},
             {WorkoutType.Intervals, new IntervalsStrategy()},
-            {WorkoutType.HillRepeat, new HillRepeatsStrategy()}
+            {WorkoutType.HillRepeat, new HillRepeatsStrategy()},
+            {WorkoutType.RacePace, new RacePaceStrategy()}
         };
 
     public Workout GenerateWorkout(WorkoutType type, WorkoutParameters parameters)
