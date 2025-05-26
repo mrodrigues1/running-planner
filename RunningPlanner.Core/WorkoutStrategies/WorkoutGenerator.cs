@@ -2,7 +2,12 @@
 
 namespace RunningPlanner.Core.WorkoutStrategies;
 
-public class WorkoutGenerator
+public interface IWorkoutGenerator
+{
+    Workout GenerateWorkout(WorkoutType type, WorkoutParameters parameters);
+}
+
+public class WorkoutGenerator : IWorkoutGenerator
 {
     private readonly Dictionary<WorkoutType, IWorkoutStrategy> _strategies =
         new()
