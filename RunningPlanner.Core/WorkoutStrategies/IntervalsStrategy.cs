@@ -106,14 +106,14 @@ public class IntervalsStrategy : IWorkoutStrategy
                     intervalDistance,
                     IntensityTarget.Pace(parameters.Paces.IntervalPace.Min, parameters.Paces.IntervalPace.Max));
 
-            var restStep = SimpleStep
+            var recoveryStep = SimpleStep
                 .CreateWithKilometers(
                     StepType.Recover,
                     recoveryDistance,
-                    IntensityTarget.Pace(parameters.Paces.EasyPace.Min, parameters.Paces.EasyPace.Max));
+                    IntensityTarget.Pace(parameters.Paces.RecoveryPace.Min, parameters.Paces.RecoveryPace.Max));
 
             steps.Add(runStep);
-            steps.Add(restStep);
+            steps.Add(recoveryStep);
         }
 
         var totalRepeats = repeats * 2;

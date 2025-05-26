@@ -86,14 +86,14 @@ public class HillRepeatsStrategy : IWorkoutStrategy
                     HillUpDistance,
                     IntensityTarget.Pace(parameters.Paces.IntervalPace));
 
-            var restStep = SimpleStep
+            var recoverStep = SimpleStep
                 .CreateWithKilometers(
                     StepType.Recover,
                     HillDownDistance,
-                    IntensityTarget.Pace(parameters.Paces.EasyPace));
+                    IntensityTarget.Pace(parameters.Paces.RecoveryPace));
 
             steps.Add(runStep);
-            steps.Add(restStep);
+            steps.Add(recoverStep);
         }
 
         var totalRepeats = repeats * 2;

@@ -71,7 +71,7 @@ public class EasyRunWithStridesStrategy : IWorkoutStrategy
                 .CreateWithKilometers(
                     StepType.Recover,
                     StrideDistanceMeters / 1000m,
-                    IntensityTarget.Pace(parameters.Paces.EasyPace.Min, parameters.Paces.EasyPace.Max));
+                    IntensityTarget.Pace(parameters.Paces.RestPace.Min, parameters.Paces.RestPace.Max));
 
             steps.Add(runSimpleStep);
             steps.Add(restSimpleStep);

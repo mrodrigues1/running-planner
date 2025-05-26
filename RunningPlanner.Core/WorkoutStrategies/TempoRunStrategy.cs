@@ -41,8 +41,7 @@ public class TempoRunStrategy : IWorkoutStrategy
         };
 
         tempoMinutes = Math.Min(tempoMinutes, maxTempoMinutes);
-
-
+        
         var tempoDistance = CalculateDistanceBasedOnDuration(
             TimeSpan.FromMinutes(tempoMinutes),
             parameters.Paces.ThresholdPace);
