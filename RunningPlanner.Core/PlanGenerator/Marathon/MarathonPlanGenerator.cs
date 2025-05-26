@@ -49,7 +49,7 @@ public class MarathonPlanGenerator
         ArgumentNullException.ThrowIfNull(parameters, nameof(parameters));
 
         _parameters = parameters;
-        _workoutGenerator = new WorkoutStrategies.WorkoutGenerator();
+        _workoutGenerator = new WorkoutGenerator();
     }
 
     public TrainingPlan Generate()
@@ -488,30 +488,5 @@ public class MarathonPlanGenerator
         }
 
         return (weeklyMileage * longRunPercent, longRunPercent);
-    }
-
-    private (Workout mediumRun, DayOfWeek mediumRunDay) MediumRun(
-        WeeklyMileageData weeklyMileage,
-        TrainingPaces trainingPaces,
-        DayOfWeek[] nonQualityDays)
-    {
-        var mediumRunDistance = CalculateMediumRunDistance(
-            weeklyMileage.Week,
-            weeklyMileage.TrainingPhase,
-            weeklyMileage.WeeklyMileage
-        );
-
-        var mediumRun = Workout.CreateMediumRun(mediumRunDistance, trainingPaces.EasyPace);
-
-        var mediumRunDay = nonQualityDays.Contains(DayOfWeek.Wednesday)
-            ? DayOfWeek.Wednesday
-            : nonQualityDays.FirstOrDefault();
-
-        return (mediumRun, mediumRunDay);
-    }
-
-    private decimal CalculateMediumRunDistance(int weekNumber, TrainingPhase phase, decimal weeklyMileage)
-    {
-        return weeklyMileage * MediumRunPercent;
     }
 }
