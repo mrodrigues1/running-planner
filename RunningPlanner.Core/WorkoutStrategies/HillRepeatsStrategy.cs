@@ -4,9 +4,6 @@ namespace RunningPlanner.Core.WorkoutStrategies;
 
 public class HillRepeatsStrategy : IWorkoutStrategy
 {
-    private const decimal HillUpDistance = 400m;
-    private const decimal HillDownDistance = 400m;
-
     public Workout Generate(WorkoutParameters parameters)
     {
         // Base hill parameters based on experience level
@@ -18,6 +15,17 @@ public class HillRepeatsStrategy : IWorkoutStrategy
             ExperienceLevel.Advanced => 8,
             ExperienceLevel.Elite => 10,
             _ => 6
+        };
+        
+        // hill distance parameters based on experience level
+        decimal hillDistance = parameters.ExperienceLevel switch
+        {
+            ExperienceLevel.Beginner => 100m,
+            ExperienceLevel.Novice => 200m,
+            ExperienceLevel.Intermediate => 300m,
+            ExperienceLevel.Advanced => 400m,
+            ExperienceLevel.Elite => 400m,
+            _ => 200m
         };
 
         // Progressive hill repeats based on phase and week
@@ -33,17 +41,17 @@ public class HillRepeatsStrategy : IWorkoutStrategy
         // Cap repeats based on experience level
         int maxRepeats = parameters.ExperienceLevel switch
         {
-            ExperienceLevel.Beginner => 8,
-            ExperienceLevel.Novice => 10,
-            ExperienceLevel.Intermediate => 12,
-            ExperienceLevel.Advanced => 15,
-            ExperienceLevel.Elite => 20,
+            ExperienceLevel.Beginner => 4,
+            ExperienceLevel.Novice => 6,
+            ExperienceLevel.Intermediate => 8,
+            ExperienceLevel.Advanced => 10,
+            ExperienceLevel.Elite => 12,
             _ => 10
         };
 
         repeats = Math.Min(repeats, maxRepeats);
 
-        var currentRepeatsTotalDistance = repeats * (HillUpDistance + HillDownDistance) / 1000m;
+        var currentRepeatsTotalDistance = repeats * (hillDistance + hillDistance) / 1000m;
         var remainingDistance = parameters.TotalDistance - currentRepeatsTotalDistance;
         var warmupCooldownDistance = 0m;
 
@@ -55,7 +63,7 @@ public class HillRepeatsStrategy : IWorkoutStrategy
         {
             while (remainingDistance < 2m)
             {
-                currentRepeatsTotalDistance = repeats * (HillUpDistance + HillDownDistance) / 1000m;
+                currentRepeatsTotalDistance = repeats * (hillDistance + hillDistance) / 1000m;
                 remainingDistance = parameters.TotalDistance - currentRepeatsTotalDistance;
                 warmupCooldownDistance = remainingDistance / 2;
 
@@ -66,7 +74,7 @@ public class HillRepeatsStrategy : IWorkoutStrategy
         remainingDistance = parameters.TotalDistance - (warmupCooldownDistance + warmupCooldownDistance);
 
         // Each hill repeat is approximate:
-        decimal totalRepeatDistance = repeats * (HillUpDistance + HillDownDistance);
+        decimal totalRepeatDistance = repeats * (hillDistance + hillDistance);
 
         // If there's additional distance to cover, we'll add it as an easy run
         decimal additionalEasyDistance = Math.Max(0, remainingDistance - totalRepeatDistance);
@@ -83,13 +91,13 @@ public class HillRepeatsStrategy : IWorkoutStrategy
             var runStep = SimpleStep
                 .CreateWithKilometers(
                     StepType.Run,
-                    HillUpDistance,
+                    hillDistance,
                     IntensityTarget.Pace(parameters.Paces.IntervalPace));
 
             var recoverStep = SimpleStep
                 .CreateWithKilometers(
                     StepType.Recover,
-                    HillDownDistance,
+                    hillDistance,
                     IntensityTarget.Pace(parameters.Paces.RecoveryPace));
 
             steps.Add(runStep);
