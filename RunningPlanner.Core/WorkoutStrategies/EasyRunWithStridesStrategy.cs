@@ -33,11 +33,11 @@ public class EasyRunWithStridesStrategy : IWorkoutStrategy
         // Cap strides based on experience level
         int maxStrides = parameters.ExperienceLevel switch
         {
-            ExperienceLevel.Beginner => 8,
-            ExperienceLevel.Novice => 10,
-            ExperienceLevel.Intermediate => 12,
-            ExperienceLevel.Advanced => 16,
-            ExperienceLevel.Elite => 20,
+            ExperienceLevel.Beginner => 6,
+            ExperienceLevel.Novice => 8,
+            ExperienceLevel.Intermediate => 10,
+            ExperienceLevel.Advanced => 14,
+            ExperienceLevel.Elite => 18,
             _ => 10
         };
 
