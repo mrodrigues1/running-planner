@@ -10,4 +10,4 @@ public record WorkoutParameters(
     int WeekNumber,
     int PhaseWeekNumber,
     decimal TotalDistance,
-    decimal? RestBeforeStartIntervalDistance);
+    decimal? RestBeforeStartIntervalDistance = null);

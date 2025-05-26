@@ -1,5 +1,6 @@
 ﻿using RunningPlanner.Core.Models;
 using RunningPlanner.Core.Models.Paces;
+using RunningPlanner.Core.WorkoutStrategies;
 
 namespace RunningPlanner.Core.PlanGenerator.Marathon;
 
@@ -41,12 +42,14 @@ public class MarathonPlanGenerator
     private const int MinimumWeekRunningDays = 4;
     private const int MaximumQualityWorkoutDays = 3;
     private readonly MarathonPlanGeneratorParameters _parameters;
+    private readonly IWorkoutGenerator _workoutGenerator;
 
     public MarathonPlanGenerator(MarathonPlanGeneratorParameters parameters)
     {
         ArgumentNullException.ThrowIfNull(parameters, nameof(parameters));
 
         _parameters = parameters;
+        _workoutGenerator = new WorkoutStrategies.WorkoutGenerator();
     }
 
     public TrainingPlan Generate()
@@ -235,20 +238,19 @@ public class MarathonPlanGenerator
         {
             var workoutType = runDistribution.WorkoutType;
             var dayOfWeek = runDistribution.DayOfWeek;
+            var workoutPercent = runDistribution.Percentage;
+            var workoutDistance = workoutPercent * weeklyPlan.WeeklyMileage;
+            var workoutTotalDistance = workoutType is WorkoutType.Race ? longRun.distance : workoutDistance;
 
-            var workoutGenerator = new WorkoutGenerator(
+            var workoutParameters = new WorkoutParameters(
                 weeklyPlan.TrainingPhase,
                 _parameters.RunnerLevel,
                 trainingPaces,
                 weeklyPlan.Week,
-                weeklyPlan.PhaseWeek);
+                weeklyPlan.PhaseWeek,
+                workoutTotalDistance);
 
-            var workoutPercent = runDistribution.Percentage;
-            var workoutDistance = workoutPercent * weeklyPlan.WeeklyMileage;
-
-            workouts[dayOfWeek] = workoutType is WorkoutType.Race
-                ? workoutGenerator.GenerateWorkout(workoutType, longRun.distance)
-                : workoutGenerator.GenerateWorkout(workoutType, workoutDistance);
+            workouts[dayOfWeek] = _workoutGenerator.GenerateWorkout(workoutType, workoutParameters);
         }
     }
 
