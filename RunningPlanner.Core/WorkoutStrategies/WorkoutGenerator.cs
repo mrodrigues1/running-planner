@@ -13,7 +13,8 @@ public class WorkoutGenerator
             {WorkoutType.Intervals, new IntervalsStrategy()},
             {WorkoutType.HillRepeat, new HillRepeatsStrategy()},
             {WorkoutType.RacePace, new RacePaceStrategy()},
-            {WorkoutType.EasyRunWithStrides, new EasyRunWithStridesStrategy()}
+            {WorkoutType.EasyRunWithStrides, new EasyRunWithStridesStrategy()},
+            {WorkoutType.Race, new RaceStrategy()}
         };
 
     public Workout GenerateWorkout(WorkoutType type, WorkoutParameters parameters)
