@@ -1,6 +1,7 @@
 using RunningPlanner.Core.Exceptions;
 using RunningPlanner.Core.Models;
 using RunningPlanner.Core.PlanGenerator.Marathon;
+using RunningPlanner.Core.WorkoutStrategies;
 
 namespace RunningPlanner.Tests;
 
@@ -112,5 +113,18 @@ public class CustomExceptionsTests
         // Assert
         Assert.Equal(workoutType, exception.WorkoutType);
         Assert.Equal(message, exception.Message);
+    }
+
+    [Fact]
+    public void WorkoutGenerator_Integration_ThrowsCustomException()
+    {
+        // Arrange
+        var generator = new WorkoutGenerator();
+
+        // Act & Assert - Test that our WorkoutGenerator properly throws custom exceptions
+        var exception = Assert.Throws<WorkoutGenerationException>(() => 
+            generator.GenerateWorkout(WorkoutType.EasyRun, null!));
+        
+        Assert.Contains("WorkoutParameters cannot be null", exception.Message);
     }
 }
