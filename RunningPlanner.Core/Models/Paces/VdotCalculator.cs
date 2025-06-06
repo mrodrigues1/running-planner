@@ -1,4 +1,6 @@
-﻿namespace RunningPlanner.Core.Models.Paces;
+﻿using RunningPlanner.Core.Exceptions;
+
+namespace RunningPlanner.Core.Models.Paces;
 
 /// <summary>
 /// Implements Jack Daniels' VDOT system for calculating training paces based on race performances.
@@ -148,7 +150,7 @@ public class VdotCalculator
             15m => entry => entry.FifteenKm,
             21.1m => entry => entry.HalfMarathon,
             42.2m => entry => entry.Marathon,
-            _ => throw new ArgumentException("Unsupported distance. Supported distances are 1.5K, 1 mile, 3K, 2 mile, 5K, 10K, 15K, half marathon, and marathon.")
+            _ => throw new VdotCalculationException(distance, time, "Unsupported distance. Supported distances are 1.5K, 1 mile, 3K, 2 mile, 5K, 10K, 15K, half marathon, and marathon.")
         };
 
         foreach (var vdotEntry in VdotTable.OrderByDescending(v => v.Key))
@@ -181,7 +183,7 @@ public class VdotCalculator
             return paces;
         }
 
-        throw new KeyNotFoundException($"No training paces found for VDOT {vdot}");
+        throw new VdotCalculationException($"No training paces found for VDOT {vdot}. VDOT must be between {VdotTable.Keys.Min()} and {VdotTable.Keys.Max()}.");
     }
 
     /// <summary>

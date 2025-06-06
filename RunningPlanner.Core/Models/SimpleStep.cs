@@ -1,4 +1,6 @@
-﻿namespace RunningPlanner.Core.Models;
+﻿using RunningPlanner.Core.Exceptions;
+
+namespace RunningPlanner.Core.Models;
 
 /// <summary>
 /// Represents a single workout step.
@@ -20,12 +22,12 @@ public sealed record SimpleStep : Step
     {
         if (!Enum.IsDefined(type))
         {
-            throw new ArgumentException("Invalid step type.");
+            throw new WorkoutGenerationException($"Invalid step type: {type}. Must be a valid StepType enum value.");
         }
 
         Type = type;
-        Duration = duration ?? throw new ArgumentNullException(nameof(duration));
-        IntensityTarget = intensityTarget ?? throw new ArgumentNullException(nameof(intensityTarget));
+        Duration = duration ?? throw new WorkoutGenerationException("Duration cannot be null when creating a step.");
+        IntensityTarget = intensityTarget ?? throw new WorkoutGenerationException("IntensityTarget cannot be null when creating a step.");
     }
 
     // Factory methods for common use cases

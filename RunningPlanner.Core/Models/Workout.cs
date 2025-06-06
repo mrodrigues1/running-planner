@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Globalization;
+using RunningPlanner.Core.Exceptions;
 using RunningPlanner.Core.Extensions;
 
 namespace RunningPlanner.Core.Models;
@@ -59,13 +60,13 @@ public record Workout
 
         if (stepsList.Count < 1)
         {
-            throw new ArgumentException("Workout must contain at least one step.");
+            throw new WorkoutGenerationException(type, "Workout must contain at least one step.");
         }
 
         // Ensure no null steps
         if (stepsList.Any(step => step == null))
         {
-            throw new ArgumentNullException(nameof(steps), "Steps collection cannot contain null elements.");
+            throw new WorkoutGenerationException(type, "Steps collection cannot contain null elements.");
         }
 
         Steps = stepsList.AsReadOnly();

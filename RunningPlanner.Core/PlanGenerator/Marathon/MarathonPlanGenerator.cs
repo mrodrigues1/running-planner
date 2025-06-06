@@ -1,4 +1,5 @@
-﻿using RunningPlanner.Core.Models;
+﻿using RunningPlanner.Core.Exceptions;
+using RunningPlanner.Core.Models;
 using RunningPlanner.Core.Models.Paces;
 using RunningPlanner.Core.WorkoutStrategies;
 
@@ -58,20 +59,26 @@ public class MarathonPlanGenerator
 
         if (planWeeks is < MinimumMarathonPlanWeeks or > MaximumMarathonPlanWeeks)
         {
-            throw new Exception(
+            throw new InvalidTrainingPlanParametersException(
+                nameof(_parameters.PlanWeeks),
+                planWeeks,
                 $"Plan weeks must be between {MinimumMarathonPlanWeeks} and {MaximumMarathonPlanWeeks}, but was {planWeeks}.");
         }
 
         if (_parameters.WeeklyRunningDays.Length < MinimumWeekRunningDays)
         {
-            throw new Exception(
-                $"At least 3 weekly running days must be specified, but only {_parameters.WeeklyRunningDays.Length} were specified.");
+            throw new InvalidTrainingPlanParametersException(
+                nameof(_parameters.WeeklyRunningDays),
+                _parameters.WeeklyRunningDays.Length,
+                $"At least {MinimumWeekRunningDays} weekly running days must be specified, but only {_parameters.WeeklyRunningDays.Length} were specified.");
         }
 
         if (_parameters.QualityWorkoutDays.Length > MaximumQualityWorkoutDays)
         {
-            throw new Exception(
-                $"At most 2 quality workout days can be specified, but {_parameters.QualityWorkoutDays.Length} were specified.");
+            throw new InvalidTrainingPlanParametersException(
+                nameof(_parameters.QualityWorkoutDays),
+                _parameters.QualityWorkoutDays.Length,
+                $"At most {MaximumQualityWorkoutDays} quality workout days can be specified, but {_parameters.QualityWorkoutDays.Length} were specified.");
         }
 
         var phaseWeeks = GeneratePhaseWeeks(planWeeks);
@@ -334,7 +341,10 @@ public class MarathonPlanGenerator
 
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException($"Unsupported training phase: {phase.Key}");
+                        throw new InvalidTrainingPlanParametersException(
+                            nameof(phase.Key),
+                            phase.Key,
+                            $"Unsupported training phase: {phase.Key}");
                 }
 
                 mileageByWeek.Add(
