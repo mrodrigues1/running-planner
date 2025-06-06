@@ -5,7 +5,7 @@
 /// </summary>
 public class TrainingPaces
 {
-    private int Vdot { get; }
+    public int Vdot { get; }
     public (TimeSpan Min, TimeSpan Max) EasyPace { get; }
     public (TimeSpan Min, TimeSpan Max) MarathonPace { get; }
     public (TimeSpan Min, TimeSpan Max) ThresholdPace { get; }
