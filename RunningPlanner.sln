@@ -3,6 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6D33A0A9-BB6B-497F-B36C-95A028CD8B34}"
 	ProjectSection(SolutionItems) = preProject
 		CLAUDE.md = CLAUDE.md
+		ThreadSafety.md = ThreadSafety.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunningPlanner.Core", "RunningPlanner.Core\RunningPlanner.Core.csproj", "{2E3509E8-4713-426D-B9C1-B874BBCA0B78}"
