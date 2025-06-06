@@ -57,3 +57,12 @@ This is a C# .NET 9.0 solution for generating personalized marathon training pla
 ### Training Plan Logic
 
 The plan generator calculates weekly mileages through phases, distributes runs across specified days, and applies the VDOT system for pace calculations. Long run distances are capped based on runner experience level, and step-back weeks are automatically inserted for recovery.
+
+### Thread Safety
+
+The codebase implements comprehensive thread safety:
+- **VdotCalculator**: Uses `ImmutableDictionary` for thread-safe pace calculations
+- **WorkoutGenerator**: Uses `IReadOnlyDictionary` for safe concurrent access
+- **Custom Exceptions**: Provide detailed error context with parameter tracking
+
+See `ThreadSafety.md` for detailed thread safety documentation.
