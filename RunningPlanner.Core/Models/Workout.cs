@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Globalization;
 using RunningPlanner.Core.Exceptions;
-using RunningPlanner.Core.Extensions;
+using RunningPlanner.Core.Services.WorkoutNaming;
 
 namespace RunningPlanner.Core.Models;
 
@@ -20,10 +19,12 @@ public record Workout
     /// </summary>
     public IReadOnlyList<Step> Steps { get; }
 
+    private static readonly Lazy<IWorkoutNamingService> NamingService = new(() => new WorkoutNamingService());
+    
     /// <summary>
     /// Gets the name of the workout.
     /// </summary>
-    public string Name => BuildWorkoutName();
+    public string Name => NamingService.Value.GenerateWorkoutName(this);
 
     /// <summary>
     /// Gets the total time for the workout.
@@ -72,109 +73,6 @@ public record Workout
         Steps = stepsList.AsReadOnly();
     }
 
-    /// <summary>
-    /// Builds the workout name based on its type and contents.
-    /// </summary>
-    private string BuildWorkoutName()
-    {
-        if (Type is WorkoutType.Rest)
-        {
-            return Type.GetDescription();
-        }
-
-        var workoutName = new List<string>();
-
-        workoutName.Add(Type.GetDescription());
-
-        var steps = Steps
-            .SelectMany<Step, SimpleStep>(step => step is SimpleStep simpleStep
-                ? [simpleStep]
-                : (step as Repeat)?.Steps ?? []);
-
-        var metric = steps
-            .Select(x => x.Duration is Duration.DistanceDuration distanceDuration
-                ? distanceDuration.Metric
-                : DistanceMetric.Invalid)
-            .FirstOrDefault();
-
-        workoutName.Add(
-            $"{TotalDistance.DistanceValue.ToString(CultureInfo.InvariantCulture)} {(metric is DistanceMetric.Kilometers ? "km" : metric.ToString())}");
-
-        switch (Type)
-        {
-            case WorkoutType.EasyRun
-                or WorkoutType.MediumRun
-                or WorkoutType.LongRun:
-                workoutName.Add(steps.First().IntensityTarget.PaceFormatted());
-
-                break;
-            case WorkoutType.HillRepeat
-                or WorkoutType.Intervals
-                or WorkoutType.Repetition
-                or WorkoutType.TempoRunRepeat
-                or WorkoutType.ThresholdRepeat:
-            {
-                var stepQuantity = steps.Count() / 2;
-                var stepQuantityText = $"{stepQuantity}";
-
-                var stepRun = steps.First(x => x.Type == StepType.Run);
-
-                var stepRunText = stepRun.TotalDistance.DistanceValue >= 1m
-                    ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km"
-                    : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m";
-
-                var stepRecover = steps.First(x => x.Type is StepType.Walk or StepType.Recover or StepType.Rest);
-
-                var stepRecoverText = stepRecover.TotalDistance.DistanceValue >= 1m
-                    ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km {stepRecover.Type.GetDescription()}"
-                    : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m {stepRecover.Type.GetDescription()}";
-
-                workoutName.Add(
-                    $"{stepQuantityText} x ({stepRunText}{stepRun.IntensityTarget.PaceFormatted()} + {stepRecoverText})");
-
-                break;
-            }
-            case WorkoutType.TempoRun
-                or WorkoutType.Threshold:
-            {
-                var stepRun = steps.First(x => x.Type == StepType.Run);
-
-                var stepRunText = stepRun.TotalDistance.DistanceValue >= 1m
-                    ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km"
-                    : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m";
-
-                workoutName.Add($"{stepRunText}{stepRun.IntensityTarget.PaceFormatted()}");
-
-                break;
-            }
-            case WorkoutType.EasyRunWithStrides:
-            {
-                var onlyStrideSteps = steps.Skip(1).Take(steps.Count());
-                var stepQuantity = onlyStrideSteps.Count() / 2;
-                var stepQuantityText = $"{stepQuantity}";
-
-                var stepRun = onlyStrideSteps.First(x => x.Type == StepType.Run);
-
-                var stepRunText = stepRun.TotalDistance.DistanceValue >= 1m
-                    ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km"
-                    : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m";
-
-                var stepRecover =
-                    onlyStrideSteps.First(x => x.Type is StepType.Walk or StepType.Recover or StepType.Rest);
-
-                var stepRecoverText = stepRecover.TotalDistance.DistanceValue >= 1m
-                    ? $"{stepRun.TotalDistance.DistanceValue.RoundTo(0)}km {stepRecover.Type.GetDescription()}"
-                    : $"{(stepRun.TotalDistance.DistanceValue * 1000).RoundTo(0)}m {stepRecover.Type.GetDescription()}";
-
-                workoutName.Add(
-                    $"{stepQuantityText} x ({stepRunText}{stepRun.IntensityTarget.PaceFormatted()} + {stepRecoverText})");
-
-                break;
-            }
-        }
-
-        return string.Join(" - ", workoutName);
-    }
 
     /// <summary>
     /// Calculates the total time for the workout.
