@@ -47,6 +47,10 @@ This is a C# .NET 9.0 solution for generating personalized marathon training pla
 - `WorkoutGenerator` - Factory that maps workout types to strategies
 - Individual strategies: `EasyRunStrategy`, `LongRunStrategy`, `TempoRunStrategy`, `IntervalsStrategy`, etc.
 
+**Service Layer (`RunningPlanner.Core/Services/`):**
+- `WorkoutNaming/` - Strategy pattern for generating workout names
+- `WorkoutCalculation/` - Service for workout time/distance calculations
+
 ### Key Design Patterns
 
 - **Strategy Pattern**: Used for workout generation where each workout type has its own strategy
