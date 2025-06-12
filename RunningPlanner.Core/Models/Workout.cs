@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using RunningPlanner.Core.Exceptions;
+using RunningPlanner.Core.Services.WorkoutCalculation;
 using RunningPlanner.Core.Services.WorkoutNaming;
 
 namespace RunningPlanner.Core.Models;
@@ -20,6 +21,7 @@ public record Workout
     public IReadOnlyList<Step> Steps { get; }
 
     private static readonly Lazy<IWorkoutNamingService> NamingService = new(() => new WorkoutNamingService());
+    private static readonly Lazy<IWorkoutCalculationService> CalculationService = new(() => new WorkoutCalculationService());
     
     /// <summary>
     /// Gets the name of the workout.
@@ -29,22 +31,22 @@ public record Workout
     /// <summary>
     /// Gets the total time for the workout.
     /// </summary>
-    public TimeSpan TotalTime => CalculateTotalTime();
+    public TimeSpan TotalTime => CalculationService.Value.CalculateTotalTime(this);
 
     /// <summary>
     /// Gets the estimated time for the workout.
     /// </summary>
-    public TimeSpan EstimatedTime => CalculateEstimatedTime();
+    public TimeSpan EstimatedTime => CalculationService.Value.CalculateEstimatedTime(this);
 
     /// <summary>
     /// Gets the total distance for the workout.
     /// </summary>
-    public Distance TotalDistance => CalculateTotalDistance();
+    public Distance TotalDistance => CalculationService.Value.CalculateTotalDistance(this);
 
     /// <summary>
     /// Gets the estimated distance for the workout.
     /// </summary>
-    public Distance EstimatedDistance => CalculateEstimatedDistance();
+    public Distance EstimatedDistance => CalculationService.Value.CalculateEstimatedDistance(this);
 
     private Workout(WorkoutType type, IEnumerable<Step> steps)
     {
@@ -63,72 +65,11 @@ public record Workout
         {
             throw new WorkoutGenerationException(type, "Workout must contain at least one step.");
         }
-
-        // Ensure no null steps
-        if (stepsList.Any(step => step == null))
-        {
-            throw new WorkoutGenerationException(type, "Steps collection cannot contain null elements.");
-        }
-
+        
         Steps = stepsList.AsReadOnly();
     }
 
 
-    /// <summary>
-    /// Calculates the total time for the workout.
-    /// </summary>
-    private TimeSpan CalculateTotalTime()
-    {
-        var totalTicks = Steps
-            .SelectMany<Step, SimpleStep>(step => step is SimpleStep simpleStep
-                ? [simpleStep]
-                : (step as Repeat)?.Steps ?? [])
-            .Sum(step => step.TotalTime.Ticks);
-
-        return new TimeSpan(totalTicks);
-    }
-
-    /// <summary>
-    /// Calculates the estimated time for the workout.
-    /// </summary>
-    private TimeSpan CalculateEstimatedTime()
-    {
-        var totalEstimatedTicks = Steps
-            .SelectMany<Step, SimpleStep>(step => step is SimpleStep simpleStep
-                ? [simpleStep]
-                : (step as Repeat)?.Steps ?? [])
-            .Sum(step => step.EstimatedTime.Ticks);
-
-        return new TimeSpan(totalEstimatedTicks);
-    }
-
-    /// <summary>
-    /// Calculates the total distance for the workout.
-    /// </summary>
-    private Distance CalculateTotalDistance()
-    {
-        var distance = Steps
-            .SelectMany<Step, SimpleStep>(step => step is SimpleStep simpleStep
-                ? [simpleStep]
-                : (step as Repeat)?.Steps ?? [])
-            .Sum(step => step.TotalDistance.DistanceValue);
-
-        return Distance.Kilometers(Math.Round(distance, 1, MidpointRounding.AwayFromZero));
-    }
-
-    /// <summary>
-    /// Calculates the estimated distance for the workout.
-    /// </summary>
-    private Distance CalculateEstimatedDistance()
-    {
-        var estimatedDistance = Steps
-            .SelectMany<Step, SimpleStep>(step => step is SimpleStep simpleStep
-                ? [simpleStep]
-                : (step as Repeat)?.Steps ?? [])
-            .Sum(step => step.EstimatedDistance.DistanceValue);
-
-        return Distance.Kilometers(estimatedDistance);
-    }
 
     /// <summary>
     /// Creates a standard workout with the specified type and steps.

@@ -78,8 +78,8 @@ public abstract record IntensityTarget
 
         public override string PaceFormatted()
         {
-            var minPace = Min.Minutes + ":" + Min.Seconds;
-            var maxPace = Max.Minutes + ":" + Max.Seconds;
+            var minPace = Min.Minutes + ":" + Min.Seconds.ToString("00");
+            var maxPace = Max.Minutes + ":" + Max.Seconds.ToString("00");
 
             return $"@{minPace}~{maxPace} min/km";
         }

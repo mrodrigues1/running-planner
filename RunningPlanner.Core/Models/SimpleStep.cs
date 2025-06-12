@@ -63,7 +63,7 @@ public sealed record SimpleStep : Step
 
         decimal estimatedDistance = (decimal) totalTicks / (decimal) avgPaceTicks;
 
-        return Distance.Kilometers(Math.Round(estimatedDistance, MidpointRounding.AwayFromZero));
+        return Distance.Kilometers(Math.Round(estimatedDistance, 2, MidpointRounding.AwayFromZero));
     }
 
     private Distance CalculateTotalDistance()
